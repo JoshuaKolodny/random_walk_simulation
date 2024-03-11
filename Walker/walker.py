@@ -26,8 +26,8 @@ class Walker(ABC):
     def prev_position(self) -> Tuple[float, float, float]:
         return self.__prev_x, self.__prev_y, self.__prev_z
 
-    @position.setter
-    def position(self, pos: Tuple[float, float, float]) -> None:
+    @prev_position.setter
+    def prev_position(self, pos: Tuple[float, float, float]) -> None:
         if len(pos) < 2 or len(pos) > 3:
             raise ValueError("Position must be a 2D or 3D tuple")
         self.__prev_x, self.__prev_y = pos[:2]
@@ -37,34 +37,3 @@ class Walker(ABC):
     def run(self):
         """Simulate the walker movement."""
         pass
-
-
-# def plot_walk(x, y):
-#     """Plot the walker's movement."""
-#     plt.figure(figsize=(8, 6))
-#     plt.plot(x, y, lw=1.5)
-#     plt.title("Walker's Movement")
-#     plt.xlabel("X")
-#     plt.ylabel("Y")
-#     plt.grid(True)
-#     plt.show()
-
-#
-# def main():
-#     """Main function to run the simulation."""
-#     n_steps = 1000  # Number of steps in the random walk
-#     walker = Walker()
-#
-#     # Simulate walker movement
-#     x = [walker.x]
-#     y = [walker.y]
-#     for _ in range(n_steps):
-#         walker.run()
-#         x.append(walker.x)
-#         y.append(walker.y)
-#
-#     plot_walk(x, y)
-#
-#
-# if __name__ == "__main__":
-#     main()
