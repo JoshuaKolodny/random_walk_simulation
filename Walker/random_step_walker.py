@@ -3,6 +3,7 @@ from Walker.walker import Walker
 
 
 class RandomStepWalker(Walker):
+
     def __init__(self):
         super().__init__()
 
