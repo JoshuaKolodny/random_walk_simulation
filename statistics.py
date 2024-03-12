@@ -62,7 +62,7 @@ class Statistics:
             distances[walker] = np.abs(locations_array[:, axis_index])
         return distances
 
-    def calculate_average_and_zero_counts(self):
+    def calculate_escape_radius_10(self):
         walker_totals = {}
         walker_counts = {}
 
