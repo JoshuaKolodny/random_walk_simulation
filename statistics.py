@@ -53,7 +53,7 @@ class Statistics:
         self.__average_locations = {
             walker_name: np.around(total_locations[walker_name] / simulation_counts[walker_name], decimals=5) for
             walker_name in self.__simulations.keys()}
-        print(self.__average_locations)
+        return self.__average_locations
 
     def calculate_average_distance_from_origin(self):
         distances = {}
@@ -164,7 +164,7 @@ if __name__ == '__main__':
 
     # Run simulation for 10 steps
     for i in range(1, 100):
-        simulation1.simulate(100)
+        simulation1.simulate(1000)
 
         # for walker_name, walker_info in simulation1.walkers.items():
         #     print(f"Walker {walker_name}:")
@@ -191,6 +191,7 @@ if __name__ == '__main__':
     print(distances_from_axis_y)
     print(escape_radius_10_stats)
     print(passed_y_stats)
+
 
 
 
