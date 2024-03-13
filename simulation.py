@@ -31,7 +31,6 @@ PASSED_Y = 3
 class Simulation:
     # event_manager = EventManager()
     def __init__(self):
-        # self.__total_num_steps = total_num_steps
         self.__origin = (0, 0, 0)
         self.__walkers = {}
         self.__last_x_position = 0
@@ -92,26 +91,25 @@ class Simulation:
         self.__passed_y_counter = 0
 
 
-
-if __name__ == "__main__":
-    simulation = Simulation()
-
-    # Add some walkers
-    walker1 = OneUnitRandomWalker()
-    walker2 = DiscreteStepWalker()
-    walker3 = ProbabilisticWalker(100, 1000, 100, 100, 100)
-    walker4 = RandomStepWalker()
-    simulation.add_walker(walker1)
-    simulation.add_walker(walker2)
-    simulation.add_walker(walker3)
-    simulation.add_walker(walker4)
-
-    # Run simulation for 2 steps
-    simulation.simulate(2)
-
-    # Check the results
-    for walker_name, walker_info in simulation.walkers.items():
-        print(f"Walker {walker_name}:")
-        print(f"  Locations: {walker_info[WALKER_LOCATIONS]}")
-        print(f"  Steps to escape radius 10: {walker_info[RADIUS_10]}")
-        print(f"  Number of times passed y-axis: {walker_info[PASSED_Y]}")
+# if __name__ == "__main__":
+#     simulation = Simulation()
+#
+#     # Add some walkers
+#     walker1 = OneUnitRandomWalker()
+#     walker2 = DiscreteStepWalker()
+#     walker3 = ProbabilisticWalker(100, 1000, 100, 100, 100)
+#     walker4 = RandomStepWalker()
+#     simulation.add_walker(walker1)
+#     simulation.add_walker(walker2)
+#     simulation.add_walker(walker3)
+#     simulation.add_walker(walker4)
+#
+#     # Run simulation for 2 steps
+#     simulation.simulate(2)
+#
+#     # Check the results
+#     for walker_name, walker_info in simulation.walkers.items():
+#         print(f"Walker {walker_name}:")
+#         print(f"  Locations: {walker_info[WALKER_LOCATIONS]}")
+#         print(f"  Steps to escape radius 10: {walker_info[RADIUS_10]}")
+#         print(f"  Number of times passed y-axis: {walker_info[PASSED_Y]}")

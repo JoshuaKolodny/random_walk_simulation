@@ -80,26 +80,71 @@ class Statistics:
         return distances
 
     def calculate_escape_radius_10(self):
+        """
+        This function calculates the average number of steps it took for each walker to escape a radius of 10 units.
+        It also counts the number of times a walker did not escape the radius.
+
+        Returns:
+            dict: A dictionary where the keys are walker names and the values are dictionaries containing the average
+            number of steps to escape and the count of times the walker did not escape.
+        """
+        # Initialize dictionaries to store total steps to escape and counts of not escaping for each walker
         walker_totals = {}
         walker_counts = {}
 
-        for simulation in self.__simulations.values():
-            for walker_name, walker_data in simulation.walkers.items():
-                escaped_radius_10 = walker_data[RADIUS_10]
+        # Iterate over all simulations for each walker
+        for walker_name, simulations in self.__simulations.items():
+            for simulation_name, simulation_data in simulations.items():
+                # Get the number of steps it took for the walker to escape a radius of 10 units
+                escaped_radius_10 = simulation_data['escaped_from_radius_10']
+                # If the walker did not escape, increment the count for that walker
                 if escaped_radius_10 == 0:
                     walker_counts[walker_name] = walker_counts.get(walker_name, 0) + 1
+                # Otherwise, add the number of steps to the total for that walker
                 else:
                     walker_totals[walker_name] = walker_totals.get(walker_name, 0) + escaped_radius_10
 
+        # Initialize a dictionary to store the statistics for each walker
         walker_statistics = {}
 
-        for walker_name, total in walker_totals.items():
+        # Calculate the average number of steps to escape and the count of not escaping for each walker
+        for walker_name in self.__simulations.keys():
+            total = walker_totals.get(walker_name, 0)
             count = walker_counts.get(walker_name, 0)
-            num_simulations = len(self.__simulations)
+            num_simulations = len(self.__simulations[walker_name])
             average = total / (num_simulations - count) if num_simulations - count > 0 else None
             walker_statistics[walker_name] = {'average': average, 'zero_count': count}
 
         return walker_statistics
+
+    def calculate_average_passed_y(self):
+        """
+        This function calculates the average number of times each walker passed the y-axis in all simulations.
+
+        Returns:
+            dict: A dictionary where the keys are walker names and the values are lists of averages normalized to 5 decimal points.
+        """
+        # Initialize a dictionary to store the total number of times each walker passed the y-axis
+        walker_passed_y_totals = {}
+
+        # Iterate over all simulations for each walker
+        for walker_name, simulations in self.__simulations.items():
+            num_simulations = len(simulations)
+            for simulation_name, simulation_data in simulations.items():
+                # Get the list of times the walker passed the y-axis
+                passed_y = simulation_data['passed_y_axis']
+                # If this is the first simulation for this walker, initialize the total list with zeros
+                if walker_name not in walker_passed_y_totals:
+                    walker_passed_y_totals[walker_name] = [0.0] * len(passed_y)
+                # Add the number of times the walker passed the y-axis to the total for that walker
+                for i in range(len(passed_y)):
+                    walker_passed_y_totals[walker_name][i] += passed_y[i] / num_simulations
+
+        # Calculate the average number of times each walker passed the y-axis and normalize to 5 decimal points
+        walker_passed_y_averages = {walker_name: [round(value, 5) for value in totals] for walker_name, totals in
+                                    walker_passed_y_totals.items()}
+
+        return walker_passed_y_averages
 
 
 if __name__ == '__main__':
@@ -118,14 +163,14 @@ if __name__ == '__main__':
     statistics = Statistics()
 
     # Run simulation for 10 steps
-    for i in range(1, 3):
-        simulation1.simulate(2)
+    for i in range(1, 100):
+        simulation1.simulate(100)
 
-        for walker_name, walker_info in simulation1.walkers.items():
-            print(f"Walker {walker_name}:")
-            print(f"  Locations: {walker_info[WALKER_LOCATIONS]}")
-            print(f"  Steps to escape radius 10: {walker_info[RADIUS_10]}")
-            print(f"  Number of times passed y-axis: {walker_info[PASSED_Y]}")
+        # for walker_name, walker_info in simulation1.walkers.items():
+        #     print(f"Walker {walker_name}:")
+        #     print(f"  Locations: {walker_info[WALKER_LOCATIONS]}")
+        #     print(f"  Steps to escape radius 10: {walker_info[RADIUS_10]}")
+        #     print(f"  Number of times passed y-axis: {walker_info[PASSED_Y]}")
 
         statistics.add_simulation(f"Simulation {i}", simulation1)
         simulation1.reset()
@@ -138,12 +183,14 @@ if __name__ == '__main__':
     average_distance_from_origin = statistics.calculate_average_distance_from_origin()
     distances_from_axis_x = statistics.calculate_distances_from_axis(axis='Y')
     distances_from_axis_y = statistics.calculate_distances_from_axis(axis='X')
-    # escape_radius_10_stats = statistics.calculate_escape_radius_10()
-    #
+    escape_radius_10_stats = statistics.calculate_escape_radius_10()
+    passed_y_stats = statistics.calculate_average_passed_y()
+    # Print statistics
     print(average_distance_from_origin)
     print(distances_from_axis_x)
     print(distances_from_axis_y)
-    # print(escape_radius_10_stats)
+    print(escape_radius_10_stats)
+    print(passed_y_stats)
 
 
 
