@@ -1,16 +1,24 @@
 import random
 import numpy as np
-from walker import Walker
+from Walker.walker import Walker
 
 
 class ProbabilisticWalker(Walker):
     def __init__(self, up_prob=0.25, down_prob=0.25, left_prob=0.25, right_prob=0.25, to_origin_prob=0.0):
         super().__init__()  # Start at position (0, 0, 0)
-        self.__up_prob = up_prob
-        self.__down_prob = down_prob
-        self.__left_prob = left_prob
-        self.__right_prob = right_prob
-        self.__to_origin_prob = to_origin_prob
+        # Ensure probabilities are non-negative
+        if up_prob < 0 or down_prob < 0 or left_prob < 0 or right_prob < 0 or to_origin_prob < 0:
+            raise ValueError("Probabilities must be non-negative.")
+
+        # Normalize probabilities
+        total_prob = up_prob + down_prob + left_prob + right_prob + to_origin_prob
+        if total_prob <= 0:
+            raise ValueError("Total probability must be positive.")
+        self.__up_prob = up_prob / total_prob
+        self.__down_prob = down_prob / total_prob
+        self.__left_prob = left_prob / total_prob
+        self.__right_prob = right_prob / total_prob
+        self.__to_origin_prob = to_origin_prob / total_prob
 
     def run(self):
         """Simulate the walker movement."""
@@ -35,11 +43,16 @@ class ProbabilisticWalker(Walker):
             self.position = (self.position[0] + 1, self.position[1], self.position[2])
         elif direction == "to_origin":
             # Calculate the direction vector towards the origin
-            direction_to_origin = np.array((0, 0, 0)) - np.array(self.position)
-            # Normalize the direction vector to obtain a unit vector
+            direction_to_origin = np.array([0, 0, 0]) - np.array(self.position)
+            # Calculate the norm
             norm = np.linalg.norm(direction_to_origin)
-            if norm > 0:  # To avoid division by zero
-                direction_to_origin /= norm
-            # Update the position by moving one step towards the origin
-            self.position = tuple(np.array(self.position) +
-                                  np.sign(direction_to_origin) * np.ceil(np.abs(direction_to_origin)))
+            # Check if norm is greater than 0 to avoid division by zero
+            if norm > 0:
+                # Calculate the unit vector towards the origin
+                unit_direction_to_origin = direction_to_origin / norm
+                # Define the step size towards the origin
+                step_size = 1
+                # Calculate the displacement vector towards the origin
+                displacement = step_size * unit_direction_to_origin
+                # Update the position by adding the displacement
+                self.position = tuple(np.array(self.position) + displacement)

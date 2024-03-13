@@ -1,4 +1,4 @@
-from walker import Walker
+from Walker.walker import Walker
 import random
 
 
