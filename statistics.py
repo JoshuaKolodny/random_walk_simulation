@@ -19,10 +19,12 @@ class Statistics:
         for walker_name, walker_info in simulation.walkers.items():
             if walker_name not in self.__simulations:
                 self.__simulations[walker_name] = {}
+            # Convert locations to a NumPy array for efficient computation
+            locations = np.array(walker_info[WALKER_LOCATIONS])
             self.__simulations[walker_name][name] = {
-                'locations': walker_info[WALKER_LOCATIONS],
+                'locations': locations,
                 'escaped_from_radius_10': walker_info[RADIUS_10],
-                'passed_y_axis': walker_info[PASSED_Y]
+                'passed_y_axis': np.array(walker_info[PASSED_Y])
             }
 
     def calculate_average_locations_per_cell(self):
@@ -37,7 +39,7 @@ class Statistics:
 
             # Iterate through each simulation for this walker
             for simulation_data in simulations.values():
-                locations = np.array(simulation_data['locations'])
+                locations = simulation_data['locations']
 
                 # If this is the first simulation for this walker, set the total locations to a zero array of the same shape as the locations
                 if walker_name not in total_locations:
@@ -147,50 +149,50 @@ class Statistics:
         return walker_passed_y_averages
 
 
-if __name__ == '__main__':
-    simulation1 = Simulation()
-
-    # Add some walkers
-    walker1 = OneUnitRandomWalker()
-    walker2 = DiscreteStepWalker()
-    walker3 = ProbabilisticWalker(100, 1000, 100, 100, 100)
-    walker4 = RandomStepWalker()
-    simulation1.add_walker(walker1)
-    simulation1.add_walker(walker2)
-    simulation1.add_walker(walker3)
-    simulation1.add_walker(walker4)
-    # Create instance of Statistics
-    statistics = Statistics()
-
-    # Run simulation for 10 steps
-    for i in range(1, 100):
-        simulation1.simulate(1000)
-
-        # for walker_name, walker_info in simulation1.walkers.items():
-        #     print(f"Walker {walker_name}:")
-        #     print(f"  Locations: {walker_info[WALKER_LOCATIONS]}")
-        #     print(f"  Steps to escape radius 10: {walker_info[RADIUS_10]}")
-        #     print(f"  Number of times passed y-axis: {walker_info[PASSED_Y]}")
-
-        statistics.add_simulation(f"Simulation {i}", simulation1)
-        simulation1.reset()
-
-
-
-
-    # Calculate statistics
-    statistics.calculate_average_locations_per_cell()
-    average_distance_from_origin = statistics.calculate_average_distance_from_origin()
-    distances_from_axis_x = statistics.calculate_distances_from_axis(axis='Y')
-    distances_from_axis_y = statistics.calculate_distances_from_axis(axis='X')
-    escape_radius_10_stats = statistics.calculate_escape_radius_10()
-    passed_y_stats = statistics.calculate_average_passed_y()
-    # Print statistics
-    print(average_distance_from_origin)
-    print(distances_from_axis_x)
-    print(distances_from_axis_y)
-    print(escape_radius_10_stats)
-    print(passed_y_stats)
+# if __name__ == '__main__':
+#     simulation1 = Simulation()
+#
+#     # Add some walkers
+#     walker1 = OneUnitRandomWalker()
+#     walker2 = DiscreteStepWalker()
+#     walker3 = ProbabilisticWalker(100, 1000, 100, 100, 100)
+#     walker4 = RandomStepWalker()
+#     simulation1.add_walker(walker1)
+#     simulation1.add_walker(walker2)
+#     simulation1.add_walker(walker3)
+#     simulation1.add_walker(walker4)
+#     # Create instance of Statistics
+#     statistics = Statistics()
+#
+#     # Run simulation for 10 steps
+#     for i in range(1, 100):
+#         simulation1.simulate(1000)
+#
+#         # for walker_name, walker_info in simulation1.walkers.items():
+#         #     print(f"Walker {walker_name}:")
+#         #     print(f"  Locations: {walker_info[WALKER_LOCATIONS]}")
+#         #     print(f"  Steps to escape radius 10: {walker_info[RADIUS_10]}")
+#         #     print(f"  Number of times passed y-axis: {walker_info[PASSED_Y]}")
+#
+#         statistics.add_simulation(f"Simulation {i}", simulation1)
+#         simulation1.reset()
+#
+#
+#
+#
+#     # Calculate statistics
+#     statistics.calculate_average_locations_per_cell()
+#     average_distance_from_origin = statistics.calculate_average_distance_from_origin()
+#     distances_from_axis_x = statistics.calculate_distances_from_axis(axis='Y')
+#     distances_from_axis_y = statistics.calculate_distances_from_axis(axis='X')
+#     escape_radius_10_stats = statistics.calculate_escape_radius_10()
+#     passed_y_stats = statistics.calculate_average_passed_y()
+#     # Print statistics
+#     print(average_distance_from_origin)
+#     print(distances_from_axis_x)
+#     print(distances_from_axis_y)
+#     print(escape_radius_10_stats)
+#     print(passed_y_stats)
 
 
 

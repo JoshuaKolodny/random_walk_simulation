@@ -2,6 +2,7 @@ from Walker.discrete_step_walker import DiscreteStepWalker
 from Walker.one_unit_random_walker import OneUnitRandomWalker
 from Walker.probabilistic_walker import ProbabilisticWalker
 from Walker.random_step_walker import RandomStepWalker
+from obstacles import *
 from simulation import Simulation
 from statistics import Statistics
 from Graph import Graph
@@ -21,6 +22,10 @@ class SimulationRunner:
         self.simulation.add_walker(walker2)
         self.simulation.add_walker(walker3)
         self.simulation.add_walker(walker4)
+        obstacle1 = Obstacle2D(3, 3, 2,2)
+        obstacle2 = Obstacle2D(-3, -3, 1, 1)
+        self.simulation.add_obstacle(type(obstacle1).__name__+'1', obstacle1)
+        self.simulation.add_obstacle(type(obstacle2).__name__+'2', obstacle2)
 
         # Run simulation for 10 steps
         for i in range(1, 100):
@@ -37,11 +42,11 @@ class SimulationRunner:
         passed_y_stats = self.statistics.calculate_average_passed_y()
 
         # Print statistics
-        print(average_distance_from_origin)
-        print(distances_from_axis_x)
-        print(distances_from_axis_y)
-        print(escape_radius_10_stats)
-        print(passed_y_stats)
+        # print(average_distance_from_origin)
+        # print(distances_from_axis_x)
+        # print(distances_from_axis_y)
+        # print(escape_radius_10_stats)
+        # print(passed_y_stats)
 
         # Plot graphs
         g = Graph(self.statistics)

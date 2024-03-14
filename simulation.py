@@ -1,19 +1,11 @@
-import matplotlib.pyplot as plt
-import numpy as np
-
-from Walker.discrete_step_walker import DiscreteStepWalker
-from Walker.one_unit_random_walker import OneUnitRandomWalker
-from Walker.probabilistic_walker import ProbabilisticWalker
-from Walker.random_step_walker import RandomStepWalker
 from Walker.walker import Walker
+from obstacles import Obstacle
 
 WALKER = 0
 WALKER_LOCATIONS = 1
 RADIUS_10 = 2
 PASSED_Y = 3
 
-
-# from scipy import stats
 
 # class EventManager:
 #     def __init__(self):
@@ -33,6 +25,7 @@ class Simulation:
     def __init__(self):
         self.__origin = (0, 0, 0)
         self.__walkers = {}
+        self.__obstacles = {}
         self.__last_x_position = 0
         self.__passed_y_counter = 0
 
@@ -45,9 +38,19 @@ class Simulation:
         return self.__origin
 
     def add_walker(self, walker: Walker) -> bool:
-        if walker.__class__.__name__ in self.__walkers.keys():
+        if not isinstance(walker, Walker):
             return False
-        self.__walkers[walker.__class__.__name__] = [walker, [], 0, []]
+
+        walker_type = walker.__class__.__name__
+        walker_count = sum(walker_name.startswith(walker_type) for walker_name in self.__walkers.keys())
+        unique_walker_name = f"{walker_type}{walker_count + 1}"
+        self.__walkers[unique_walker_name] = [walker, [], 0, []]
+        return True
+
+    def add_obstacle(self, obstacle_name: str, obstacle: Obstacle) -> bool:  # New method to add obstacles
+        if obstacle_name in self.__obstacles.keys():
+            return False
+        self.__obstacles[obstacle_name] = obstacle
         return True
 
     def __time_to_escape_radius_10(self, walker_name: str, num_steps: int) -> bool:
@@ -75,7 +78,18 @@ class Simulation:
             self.__last_x_position = 0
             for step in range(1, num_steps + 1):
                 walker = self.__walkers[key][WALKER]
-                walker.run()
+                valid_move = False
+                while not valid_move:
+                    walker.prev_position = walker.position
+                    walker.run()
+                    new_position = walker.position
+                    for obstacle in self.__obstacles.values():
+                        if obstacle.contains_point(new_position[0], new_position[1]):
+                            # Handle collision. For example, stop the walker from moving:
+                            walker.position = walker.prev_position
+                            break
+                    else:
+                        valid_move = True
                 self.__walkers[key][WALKER_LOCATIONS].append(walker.position)
                 self.__passed_y_axis(key, step)
                 if not is_escaped:
