@@ -1,0 +1,63 @@
+{
+    "num_simulations": 100,
+    "num_steps": 1000,
+    "walkers": {
+        "ProbabilisticWalker": {
+            "Walker1": {
+                "count": 2,
+                "up_prob": 0.25,
+                "down_prob": 0.25,
+                "left_prob": 0.25,
+                "right_prob": 0.25,
+                "to_origin_prob": 0.0
+            },
+            "Walker2": {
+                "count": 2,
+                "up_prob": 0.2,
+                "down_prob": 0.2,
+                "left_prob": 0.3,
+                "right_prob": 0.2,
+                "to_origin_prob": 0.1
+            }
+        },
+        "OneUnitRandomWalker": {
+            "Walker3": {
+                "count": 2
+            }
+        },
+        "DiscreteStepWalker": {
+            "Walker4": {
+                "count": 2
+            }
+        },
+        "RandomStepWalker": {
+            "Walker5": {
+                "count": 2
+            }
+        }
+    },
+    "barriers": {
+        "Barrier1": {
+            "x": 2,
+            "y": 2,
+            "width": 3,
+            "height": 0
+        },
+        "Barrier2": {
+            "x": 3,
+            "y": 3,
+            "width": 2,
+            "height": 1
+        }
+    },
+    "portal_gates": {
+        "PortalGate1": {
+            "x": -2,
+            "y": -2,
+            "width": 3,
+            "height": 1,
+            "dest_x": 15,
+            "dest_y": 15
+        }
+    }
+}

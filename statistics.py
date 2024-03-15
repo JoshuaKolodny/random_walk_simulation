@@ -41,7 +41,8 @@ class Statistics:
             for simulation_data in simulations.values():
                 locations = simulation_data['locations']
 
-                # If this is the first simulation for this walker, set the total locations to a zero array of the same shape as the locations
+                # If this is the first simulation for this walker,
+                # set the total locations to a zero array of the same shape as the locations
                 if walker_name not in total_locations:
                     total_locations[walker_name] = np.zeros_like(locations, dtype=float)
 
