@@ -1,5 +1,6 @@
 from Walker.walker import Walker
-from obstacles import Obstacle
+from obstacles_and_barriers import *
+from portal_gate import PortalGate
 
 WALKER = 0
 WALKER_LOCATIONS = 1
@@ -25,7 +26,9 @@ class Simulation:
     def __init__(self):
         self.__origin = (0, 0, 0)
         self.__walkers = {}
-        self.__obstacles = {}
+        self.__barriers = {}
+        self.__portal_gates = {}
+        self.__sim_obstacles_locations = set()
         self.__last_x_position = 0
         self.__passed_y_counter = 0
 
@@ -47,11 +50,41 @@ class Simulation:
         self.__walkers[unique_walker_name] = [walker, [], 0, []]
         return True
 
-    def add_obstacle(self, obstacle_name: str, obstacle: Obstacle) -> bool:  # New method to add obstacles
-        if obstacle_name in self.__obstacles.keys():
+    def add_obstacle(self, obstacle_name: str, obstacle: Obstacle, obstacle_dict: dict) -> bool:
+        # Check if the obstacle intersects with any existing obstacles or portal gates
+        for existing_bounds in self.__sim_obstacles_locations:
+            if obstacle.bounds.intersects_with(existing_bounds):
+                return False
+
+        # Check if the obstacle intersects with the origin location
+        if obstacle.bounds.contains_point(self.__origin[X], self.__origin[Y]):
             return False
-        self.__obstacles[obstacle_name] = obstacle
+
+        # If the name is already used, append a unique ID
+        if obstacle_name in obstacle_dict:
+            obstacle_name += str(len(obstacle_dict))
+
+        # Add the obstacle to the dictionary and its bounds to the locations set
+        obstacle_dict[obstacle_name] = obstacle
+        self.__sim_obstacles_locations.add(obstacle.bounds)
+
         return True
+
+    def add_barrier(self, barrier_name: str, barrier: Barrier2D) -> bool:
+        return self.add_obstacle(barrier_name, barrier, self.__barriers)
+
+    def add_portal_gate(self, portal_gate_name: str, portal_gate: PortalGate) -> bool:
+        # Create a bounding box for the destination of the portal gate
+        dest_bounds = BoundingBox(portal_gate.destination[0], portal_gate.destination[1],
+                                  portal_gate.destination[0], portal_gate.destination[1])
+
+        # Check if the destination of the portal gate intersects with any existing obstacles' locations
+        for existing_bounds in self.__sim_obstacles_locations:
+            if dest_bounds.intersects_with(existing_bounds):
+                return False
+
+        # If the destination is clear, add the portal gate as usual
+        return self.add_obstacle(portal_gate_name, portal_gate, self.__portal_gates)
 
     def __time_to_escape_radius_10(self, walker_name: str, num_steps: int) -> bool:
         walker = self.__walkers[walker_name][WALKER]
@@ -60,8 +93,7 @@ class Simulation:
             return True
         return False
 
-    # NEED TO GET LOGIC RIGHT
-    def __passed_y_axis(self, walker_name: str, step: int):
+    def __passed_y_axis(self, walker_name: str):
         walker = self.__walkers[walker_name][WALKER]
         # Checks if walker crossed y-axis
         if walker.position[0] * self.__last_x_position < 0:
@@ -70,6 +102,20 @@ class Simulation:
         self.__walkers[walker_name][PASSED_Y].append(self.__passed_y_counter)
         # Changes the last x position of walker if it's not zero
         self.__last_x_position = walker.position[0] if walker.position[0] != 0 else self.__last_x_position
+
+    def check_barrier_collision(self, walker, new_position):
+        for barrier in self.__barriers.values():
+            if barrier.intersects_with_walker(walker.prev_position, new_position):
+                return True
+        return False
+
+    def check_portal_gate_collision(self, walker):
+        for portal_gate in self.__portal_gates.values():
+            if portal_gate.bounds.intersects_with(walker.bounds):
+                # Teleport the walker to the destination of the portal gate
+                walker.position = portal_gate.destination
+                return True
+        return False
 
     def simulate(self, num_steps: int):
         for key in self.__walkers.keys():
@@ -82,16 +128,15 @@ class Simulation:
                 while not valid_move:
                     walker.prev_position = walker.position
                     walker.run()
-                    new_position = walker.position
-                    for obstacle in self.__obstacles.values():
-                        if obstacle.contains_point(new_position[0], new_position[1]):
-                            # Handle collision. For example, stop the walker from moving:
-                            walker.position = walker.prev_position
+                    if self.check_barrier_collision(walker, walker.position):
+                        walker.position = walker.prev_position
+                        continue
+                    for portal_gate in self.__portal_gates.values():
+                        if portal_gate.teleport(walker):
                             break
-                    else:
-                        valid_move = True
+                    valid_move = True
                 self.__walkers[key][WALKER_LOCATIONS].append(walker.position)
-                self.__passed_y_axis(key, step)
+                self.__passed_y_axis(key)
                 if not is_escaped:
                     is_escaped = self.__time_to_escape_radius_10(key, step)
 

@@ -2,15 +2,18 @@ from Walker.discrete_step_walker import DiscreteStepWalker
 from Walker.one_unit_random_walker import OneUnitRandomWalker
 from Walker.probabilistic_walker import ProbabilisticWalker
 from Walker.random_step_walker import RandomStepWalker
-from obstacles import *
+from obstacles_and_barriers import *
+from portal_gate import *
 from simulation import Simulation
 from statistics import Statistics
 from Graph import Graph
+
 
 class SimulationRunner:
     def __init__(self):
         self.simulation = Simulation()
         self.statistics = Statistics()
+
 
     def run(self):
         # Add some walkers
@@ -22,14 +25,20 @@ class SimulationRunner:
         self.simulation.add_walker(walker2)
         self.simulation.add_walker(walker3)
         self.simulation.add_walker(walker4)
-        obstacle1 = Obstacle2D(3, 3, 2,2)
-        obstacle2 = Obstacle2D(-3, -3, 1, 1)
-        self.simulation.add_obstacle(type(obstacle1).__name__+'1', obstacle1)
-        self.simulation.add_obstacle(type(obstacle2).__name__+'2', obstacle2)
+        obstacle1 = Barrier2D(3, 3, 2, 2)
+        obstacle2 = Barrier2D(-3, -3, 1, 1)
+        self.simulation.add_barrier(type(obstacle1).__name__, obstacle1)
+        self.simulation.add_barrier(type(obstacle2).__name__, obstacle2)
+
+        # Add some portal gates
+        portal_gate1 = PortalGate(1, 1, 1, 1, 5, 5)
+        portal_gate2 = PortalGate(-1, -1, 1, 1, -5, -5)
+        self.simulation.add_portal_gate(type(portal_gate1).__name__, portal_gate1)
+        self.simulation.add_portal_gate(type(portal_gate2).__name__, portal_gate2)
 
         # Run simulation for 10 steps
-        for i in range(1, 100):
-            self.simulation.simulate(1000)
+        for i in range(1, 10):
+            self.simulation.simulate(100)
             self.statistics.add_simulation(f"Simulation {i}", self.simulation)
             self.simulation.reset()
 
@@ -56,6 +65,21 @@ class SimulationRunner:
         g.plot_distances_from_axis(axis='Y')
         g.plot_escape_radius_10()
         g.plot_average_passed_y()
+
+        self.statistics= Statistics()
+        g1 = Graph(self.statistics)
+
+        # Run simulation for 10 steps
+        for i in range(1, 10):
+            self.simulation.simulate(100)
+            self.statistics.add_simulation(f"Simulation {i}", self.simulation)
+
+            # Plot the positions of the walkers after each simulation run
+            g1.plot_single_simulation(self.simulation)
+
+            self.simulation.reset()
+
+
 
 
 if __name__ == '__main__':

@@ -7,13 +7,15 @@ class Graph:
         self.statistics = statistics
 
     def plot_single_simulation(self, simulation):
-        for walker_name, walker_data in simulation.walkers.items():
-            positions = walker_data['WALKER_LOCATIONS']
+        for walker_name, walker_info in simulation.walkers.items():
+            positions = walker_info[1]
             x_positions = [pos[0] for pos in positions]
             y_positions = [pos[1] for pos in positions]
-            plt.plot(x_positions, y_positions, label=walker_name)
+            plt.scatter(x_positions, y_positions, label=walker_name)
         plt.legend()
-        plt.title('Walker Positions')  # Add title
+        plt.title('Walker Positions')
+        plt.xlabel('X Position')
+        plt.ylabel('Y Position')
         plt.show()
 
     def plot_average_locations_per_cell(self):
