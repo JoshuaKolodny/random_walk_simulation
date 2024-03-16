@@ -1,7 +1,3 @@
-from Walker.discrete_step_walker import DiscreteStepWalker
-from Walker.one_unit_random_walker import OneUnitRandomWalker
-from Walker.probabilistic_walker import ProbabilisticWalker
-from Walker.random_step_walker import RandomStepWalker
 from simulation import Simulation
 import numpy as np
 WALKER = 0

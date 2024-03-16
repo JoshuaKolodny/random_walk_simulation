@@ -1,8 +1,8 @@
 {
-    "num_simulations": 100,
-    "num_steps": 1000,
+    "num_simulations": 20,
+    "num_steps": 200,
     "walkers": {
-        "ProbabilisticWalker": {
+        "BiasedWalker": {
             "Walker1": {
                 "count": 2,
                 "up_prob": 0.25,

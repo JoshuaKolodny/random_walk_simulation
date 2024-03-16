@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 from statistics import Statistics
+import textwrap
 
 
 class Graph:
@@ -40,29 +41,33 @@ class Graph:
         plt.show()
 
     def plot_escape_radius_10(self):
+        plt.figure(figsize=(10, 6))  # Increase figure size
         for walker_name, stats in self.statistics.calculate_escape_radius_10().items():
             # Check if average is None
             if stats['average'] is None:
                 # If average is None, plot a specific value or text
-                plt.bar(walker_name, 0, label='Average steps to escape')
+                plt.bar(walker_name, 0, label=walker_name)
                 plt.annotate('No escape',
                              (walker_name, 0),
                              textcoords="offset points",
-                             xytext=(0, 10),
+                             xytext=(0, 0),  # Adjust the position of the annotation
                              ha='center')
             else:
-                plt.bar(walker_name, stats['average'], label='Average steps to escape')
+                plt.bar(walker_name, stats['average'], label=walker_name)
                 plt.annotate(f"Zero count: {stats['zero_count']}",
                              (walker_name, stats['average']),
                              textcoords="offset points",
-                             xytext=(0, 10),
+                             xytext=(0, 0),  # Adjust the position of the annotation
                              ha='center')
 
-        # Add the following lines here
-        plt.xticks(fontsize=8)
+        # Wrap x-axis labels
+        plt.xticks([i for i in range(len(self.statistics.calculate_escape_radius_10().items()))],
+                   [textwrap.fill(name, 10) for name in self.statistics.calculate_escape_radius_10().keys()],
+                   fontsize=5)
 
         plt.legend()
         plt.title('Escape Radius 10')  # Add title
+        plt.tight_layout()  # Adjust layout to fit everything nicely
         plt.show()
 
     def plot_average_passed_y(self):

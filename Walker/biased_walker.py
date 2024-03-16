@@ -3,7 +3,7 @@ import numpy as np
 from Walker.walker import Walker
 
 
-class ProbabilisticWalker(Walker):
+class BiasedWalker(Walker):
     def __init__(self, up_prob=0.25, down_prob=0.25, left_prob=0.25, right_prob=0.25, to_origin_prob=0.0):
         super().__init__()  # Start at position (0, 0, 0)
         # Ensure probabilities are non-negative

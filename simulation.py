@@ -117,7 +117,7 @@ class Simulation:
                 return True
         return False
 
-    def simulate(self, num_steps: int):
+    def simulate(self, num_steps: int, max_attempts: int = 1000):
         for key in self.__walkers.keys():
             is_escaped = False
             self.__passed_y_counter = 0
@@ -125,16 +125,22 @@ class Simulation:
             for step in range(1, num_steps + 1):
                 walker = self.__walkers[key][WALKER]
                 valid_move = False
-                while not valid_move:
+                attempts = 0
+                while not valid_move and attempts < max_attempts:
                     walker.prev_position = walker.position
                     walker.run()
                     if self.check_barrier_collision(walker, walker.position):
                         walker.position = walker.prev_position
+                        attempts += 1
                         continue
                     for portal_gate in self.__portal_gates.values():
                         if portal_gate.teleport(walker):
                             break
                     valid_move = True
+                if attempts == max_attempts:
+                    print(
+                        f"Walker {key} could not find a valid move after {max_attempts} attempts. Stopping simulation for this walker.")
+                    break
                 self.__walkers[key][WALKER_LOCATIONS].append(walker.position)
                 self.__passed_y_axis(key)
                 if not is_escaped:
