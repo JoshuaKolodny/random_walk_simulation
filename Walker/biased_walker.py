@@ -4,8 +4,35 @@ from Walker.walker import Walker
 
 
 class BiasedWalker(Walker):
+    """
+    A Walker subclass that simulates a biased random walk.
+
+    The walker can move in four directions: up, down, left, and right. It can also move towards the origin.
+    The probabilities for each direction are specified at initialization and are normalized to sum to 1.
+
+    Attributes:
+        __up_prob (float): The probability of moving up.
+        __down_prob (float): The probability of moving down.
+        __left_prob (float): The probability of moving left.
+        __right_prob (float): The probability of moving right.
+        __to_origin_prob (float): The probability of moving towards the origin.
+    """
+
     def __init__(self, up_prob: float = 0.25, down_prob: float = 0.25, left_prob: float = 0.25,
                  right_prob: float = 0.25, to_origin_prob: float = 0.0):
+        """
+        Initialize a new BiasedWalker.
+
+        Args:
+            up_prob (float): The initial probability of moving up. Defaults to 0.25.
+            down_prob (float): The initial probability of moving down. Defaults to 0.25.
+            left_prob (float): The initial probability of moving left. Defaults to 0.25.
+            right_prob (float): The initial probability of moving right. Defaults to 0.25.
+            to_origin_prob (float): The initial probability of moving towards the origin. Defaults to 0.0.
+
+        Raises:
+            ValueError: If any of the probabilities are negative or if their sum is not positive.
+        """
         super().__init__()  # Start at position (0, 0, 0)
         # Ensure probabilities are non-negative
         if up_prob < 0 or down_prob < 0 or left_prob < 0 or right_prob < 0 or to_origin_prob < 0:
@@ -22,7 +49,12 @@ class BiasedWalker(Walker):
         self.__to_origin_prob = to_origin_prob / total_prob
 
     def run(self) -> None:
-        """Simulate the walker movement."""
+        """
+        Simulate the walker movement.
+
+        The walker chooses a random direction based on the probabilities and moves one step in that direction.
+        If the direction is towards the origin, the walker moves one step along the unit vector towards the origin.
+        """
         self.prev_position = self.position
         # Define the possible directions: up, down, left, right, and towards origin
         directions = ["up", "down", "left", "right", "to_origin"]

@@ -1,6 +1,6 @@
 {
     "num_simulations": 20,
-    "num_steps": 200,
+    "num_steps": 1000,
     "walkers": {
         "BiasedWalker": {
             "Walker1": {

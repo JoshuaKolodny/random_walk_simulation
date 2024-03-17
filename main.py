@@ -71,7 +71,6 @@ class SimulationRunner:
                         print(
                             f"Error: Failed to create a walker of type {walker_type} with parameters {walker_params}. {e}")
                         continue
-                    self.simulation.add_walker(walker)
 
         # Extract barriers and portal gates from simulation_parameters
         barriers = simulation_parameters.get('barriers', {})

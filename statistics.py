@@ -24,7 +24,7 @@ class Statistics:
                 'passed_y_axis': np.array(walker_info[PASSED_Y])
             }
 
-    def calculate_average_locations_per_cell(self) -> None:
+    def calculate_average_locations_per_cell(self) -> Dict[str, np.ndarray]:
         # Initialize a dictionary to store the total locations for each walker
         total_locations: Dict[str, np.ndarray] = {}
         simulation_counts: Dict[str, int] = {}
@@ -53,6 +53,7 @@ class Statistics:
         self.__average_locations = {
             walker_name: np.around(total_locations[walker_name] / simulation_counts[walker_name], decimals=5) for
             walker_name in self.__simulations.keys()}
+        return self.__average_locations
 
     def calculate_average_distance_from_origin(self) -> Dict[str, List[float]]:
         distances = {}
