@@ -1,15 +1,16 @@
 import os
 import json
+from typing import Any, Dict
 
 
 class StatisticsExporter:
-    def __init__(self):
-        self.data = {}
+    def __init__(self) -> None:
+        self.data: Dict[str, Any] = {}
 
-    def add_data(self, key, value):
+    def add_data(self, key: str, value: Any) -> None:
         self.data[key] = value
 
-    def save_to_json(self, filename):
+    def save_to_json(self, filename: str) -> None:
         base_filename, file_extension = os.path.splitext(filename)
         counter = 1
 

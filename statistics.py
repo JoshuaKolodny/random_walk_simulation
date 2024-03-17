@@ -1,3 +1,4 @@
+from typing import Dict, List, Optional, Union
 from simulation import Simulation
 import numpy as np
 WALKER = 0
@@ -7,11 +8,11 @@ PASSED_Y = 3
 
 
 class Statistics:
-    def __init__(self):
-        self.__simulations = {}
-        self.__average_locations = {}
+    def __init__(self) -> None:
+        self.__simulations: Dict = {}
+        self.__average_locations: Dict[str, np.ndarray] = {}
 
-    def add_simulation(self, name: str, simulation: Simulation):
+    def add_simulation(self, name: str, simulation: Simulation) -> None:
         for walker_name, walker_info in simulation.walkers.items():
             if walker_name not in self.__simulations:
                 self.__simulations[walker_name] = {}
@@ -23,10 +24,10 @@ class Statistics:
                 'passed_y_axis': np.array(walker_info[PASSED_Y])
             }
 
-    def calculate_average_locations_per_cell(self):
+    def calculate_average_locations_per_cell(self) -> None:
         # Initialize a dictionary to store the total locations for each walker
-        total_locations = {}
-        simulation_counts = {}
+        total_locations: Dict[str, np.ndarray] = {}
+        simulation_counts: Dict[str, int] = {}
 
         # Iterate through each walker
         for walker_name, simulations in self.__simulations.items():
@@ -52,9 +53,8 @@ class Statistics:
         self.__average_locations = {
             walker_name: np.around(total_locations[walker_name] / simulation_counts[walker_name], decimals=5) for
             walker_name in self.__simulations.keys()}
-        return self.__average_locations
 
-    def calculate_average_distance_from_origin(self):
+    def calculate_average_distance_from_origin(self) -> Dict[str, List[float]]:
         distances = {}
         origin_array = np.array((0, 0, 0))
         for walker, locations in self.__average_locations.items():
@@ -66,7 +66,7 @@ class Statistics:
             distances[walker] = list(np.around(raw_distances, decimals=5))
         return distances
 
-    def calculate_distances_from_axis(self, axis='X'):
+    def calculate_distances_from_axis(self, axis: str = 'X') -> Dict[str, List[float]]:
         distances = {}
         axis_index = {'X': 0, 'Y': 1, 'Z': 2}[axis.upper()]
         for walker, locations in self.__average_locations.items():
@@ -78,7 +78,7 @@ class Statistics:
             distances[walker] = list(np.around(raw_distances, decimals=5))
         return distances
 
-    def calculate_escape_radius_10(self):
+    def calculate_escape_radius_10(self) -> Dict[str, Dict[str, Optional[float]]]:
         """
         This function calculates the average number of steps it took for each walker to escape a radius of 10 units.
         It also counts the number of times a walker did not escape the radius.
@@ -88,8 +88,8 @@ class Statistics:
             number of steps to escape and the count of times the walker did not escape.
         """
         # Initialize dictionaries to store total steps to escape and counts of not escaping for each walker
-        walker_totals = {}
-        walker_counts = {}
+        walker_totals: Dict[str, int] = {}
+        walker_counts: Dict[str, int] = {}
 
         # Iterate over all simulations for each walker
         for walker_name, simulations in self.__simulations.items():
@@ -116,7 +116,7 @@ class Statistics:
 
         return walker_statistics
 
-    def calculate_average_passed_y(self):
+    def calculate_average_passed_y(self) -> Dict[str, List[float]]:
         """
         This function calculates the average number of times each walker passed the y-axis in all simulations.
 

@@ -4,7 +4,8 @@ from Walker.walker import Walker
 
 
 class BiasedWalker(Walker):
-    def __init__(self, up_prob=0.25, down_prob=0.25, left_prob=0.25, right_prob=0.25, to_origin_prob=0.0):
+    def __init__(self, up_prob: float = 0.25, down_prob: float = 0.25, left_prob: float = 0.25,
+                 right_prob: float = 0.25, to_origin_prob: float = 0.0):
         super().__init__()  # Start at position (0, 0, 0)
         # Ensure probabilities are non-negative
         if up_prob < 0 or down_prob < 0 or left_prob < 0 or right_prob < 0 or to_origin_prob < 0:
@@ -20,7 +21,7 @@ class BiasedWalker(Walker):
         self.__right_prob = right_prob / total_prob
         self.__to_origin_prob = to_origin_prob / total_prob
 
-    def run(self):
+    def run(self) -> None:
         """Simulate the walker movement."""
         self.prev_position = self.position
         # Define the possible directions: up, down, left, right, and towards origin

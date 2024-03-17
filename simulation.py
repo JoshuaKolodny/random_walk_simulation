@@ -1,3 +1,4 @@
+from typing import Dict, List, Union
 from Walker.walker import Walker
 from obstacles_and_barriers import *
 from portal_gate import PortalGate
@@ -33,11 +34,11 @@ class Simulation:
         self.__passed_y_counter = 0
 
     @property
-    def walkers(self):
+    def walkers(self) -> Dict[str, List[Union[Walker, List[Tuple[float, float, float]], int, List[int]]]]:
         return self.__walkers
 
     @property
-    def origin(self):
+    def origin(self) -> Tuple[float, float, float]:
         return self.__origin
 
     def add_walker(self, walker: Walker) -> bool:
@@ -50,7 +51,7 @@ class Simulation:
         self.__walkers[unique_walker_name] = [walker, [], 0, []]
         return True
 
-    def add_obstacle(self, obstacle_name: str, obstacle: Obstacle, obstacle_dict: dict) -> bool:
+    def add_obstacle(self, obstacle_name: str, obstacle: Obstacle, obstacle_dict: Dict[str, Obstacle]) -> bool:
         # Check if the obstacle intersects with any existing obstacles or portal gates
         for existing_bounds in self.__sim_obstacles_locations:
             if obstacle.bounds.intersects_with(existing_bounds):
@@ -93,7 +94,7 @@ class Simulation:
             return True
         return False
 
-    def __passed_y_axis(self, walker_name: str):
+    def __passed_y_axis(self, walker_name: str) -> None:
         walker = self.__walkers[walker_name][WALKER]
         # Checks if walker crossed y-axis
         if walker.position[0] * self.__last_x_position < 0:
@@ -103,21 +104,19 @@ class Simulation:
         # Changes the last x position of walker if it's not zero
         self.__last_x_position = walker.position[0] if walker.position[0] != 0 else self.__last_x_position
 
-    def check_barrier_collision(self, walker, new_position):
+    def check_barrier_collision(self, walker: Walker, new_position: Tuple[float, float, float]) -> bool:
         for barrier in self.__barriers.values():
             if barrier.intersects_with_walker(walker.prev_position, new_position):
                 return True
         return False
 
-    def check_portal_gate_collision(self, walker):
+    def check_portal_gate_collision(self, walker: Walker) -> bool:
         for portal_gate in self.__portal_gates.values():
-            if portal_gate.bounds.intersects_with(walker.bounds):
-                # Teleport the walker to the destination of the portal gate
-                walker.position = portal_gate.destination
+            if portal_gate.teleport(walker):
                 return True
         return False
 
-    def simulate(self, num_steps: int, max_attempts: int = 1000):
+    def simulate(self, num_steps: int, max_attempts: int = 1000) -> None:
         for key in self.__walkers.keys():
             is_escaped = False
             self.__passed_y_counter = 0
@@ -133,20 +132,20 @@ class Simulation:
                         walker.position = walker.prev_position
                         attempts += 1
                         continue
-                    for portal_gate in self.__portal_gates.values():
-                        if portal_gate.teleport(walker):
-                            break
+                    if self.check_portal_gate_collision(walker):
+                        break
                     valid_move = True
                 if attempts == max_attempts:
                     print(
-                        f"Walker {key} could not find a valid move after {max_attempts} attempts. Stopping simulation for this walker.")
+                        f"Walker {key} could not find a valid move after {max_attempts} attempts."
+                        f" Stopping simulation for this walker.")
                     break
                 self.__walkers[key][WALKER_LOCATIONS].append(walker.position)
                 self.__passed_y_axis(key)
                 if not is_escaped:
                     is_escaped = self.__time_to_escape_radius_10(key, step)
 
-    def reset(self):
+    def reset(self) -> None:
         for walker_name, walker_info in self.__walkers.items():
             walker_info[WALKER].position = self.origin
             walker_info[WALKER_LOCATIONS] = []
