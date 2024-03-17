@@ -122,9 +122,9 @@ class SimulationRunner:
             print(f"Error: The directory to save the statistics does not exist.")
             return
 
+
         # Plot graphs
         g = Graph(self.statistics)
-        g.plot_average_locations_per_cell()
         g.plot_average_distance_from_origin()
         g.plot_distances_from_axis(axis='X')
         g.plot_distances_from_axis(axis='Y')

@@ -1,6 +1,6 @@
 {
     "num_simulations": 20,
-    "num_steps": 1000,
+    "num_steps": 500,
     "walkers": {
         "BiasedWalker": {
             "Walker1": {
@@ -52,12 +52,12 @@
     },
     "portal_gates": {
         "PortalGate1": {
-            "x": -2,
-            "y": -2,
+            "x": 12,
+            "y": 12,
             "width": 3,
             "height": 1,
-            "dest_x": 15,
-            "dest_y": 15
+            "dest_x": 30,
+            "dest_y": 30
         }
     }
 }

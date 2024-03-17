@@ -31,6 +31,8 @@ class Graph:
             plt.plot(average_distance, label=walker_name)
         plt.legend()
         plt.title('Average Distance From Origin')  # Add title
+        plt.xlabel('Number of Steps')  # Add x-axis label
+        plt.ylabel('Distance from Origin')  # Add y-axis label
         plt.show()
 
     def plot_distances_from_axis(self, axis='X'):
@@ -38,27 +40,21 @@ class Graph:
             plt.plot(distances, label=walker_name)
         plt.legend()
         plt.title(f'Distances From {axis} Axis')  # Add title
+        plt.xlabel('Number of Steps')  # Add x-axis label
+        plt.ylabel(f'Distance from {axis} Axis')  # Add y-axis label
         plt.show()
 
     def plot_escape_radius_10(self):
         plt.figure(figsize=(10, 6))  # Increase figure size
         for walker_name, stats in self.statistics.calculate_escape_radius_10().items():
-            # Check if average is None
-            if stats['average'] is None:
-                # If average is None, plot a specific value or text
-                plt.bar(walker_name, 0, label=walker_name)
-                plt.annotate('No escape',
-                             (walker_name, 0),
-                             textcoords="offset points",
-                             xytext=(0, 0),  # Adjust the position of the annotation
-                             ha='center')
-            else:
-                plt.bar(walker_name, stats['average'], label=walker_name)
-                plt.annotate(f"Zero count: {stats['zero_count']}",
-                             (walker_name, stats['average']),
-                             textcoords="offset points",
-                             xytext=(0, 0),  # Adjust the position of the annotation
-                             ha='center')
+            # Replace None with a default value
+            average = stats['average'] if stats['average'] is not None else 0
+            plt.bar(walker_name, average, label=walker_name)
+            plt.annotate(f"Didn't escape: {stats['zero_count']} out of {self.statistics.get_total_simulations}",
+                         (walker_name, average),
+                         textcoords="offset points",
+                         xytext=(0, 0),  # Adjust the position of the annotation
+                         ha='center')
 
         # Wrap x-axis labels
         plt.xticks([i for i in range(len(self.statistics.calculate_escape_radius_10().items()))],
@@ -67,6 +63,7 @@ class Graph:
 
         plt.legend()
         plt.title('Escape Radius 10')  # Add title
+        plt.ylabel('Amount of Steps')
         plt.tight_layout()  # Adjust layout to fit everything nicely
         plt.show()
 
@@ -75,4 +72,6 @@ class Graph:
             plt.plot(averages, label=walker_name)
         plt.legend()
         plt.title('Average Passed Y')  # Add title
+        plt.xlabel('Number of Steps')  # Add x-axis label
+        plt.ylabel('Number of Times Crossed Y Axis')  # Add y-axis label
         plt.show()

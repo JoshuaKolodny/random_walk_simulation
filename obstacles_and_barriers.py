@@ -57,9 +57,9 @@ class Barrier3D(Obstacle):
         return BoundingBox3D(self._x, self._y, self.__z, self._x + self._width, self._y + self._height,
                              self.__z + self.__depth)
 
-    def contains_point(self, x: float, y: float, z: float = None) -> bool:
+    def contains_point(self, x: float, y: float, z: Optional[float] = None) -> bool:
         if z is None:
-            return super().contains_point(x, y)
+            raise NotImplementedError("This method must be implemented in a subclass")
         else:
             return self.bounds.contains_point(x, y, z)
 

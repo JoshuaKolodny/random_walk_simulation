@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional
 from simulation import Simulation
 import numpy as np
 WALKER = 0
@@ -9,10 +9,16 @@ PASSED_Y = 3
 
 class Statistics:
     def __init__(self) -> None:
+        self.__total_simulations = 0
         self.__simulations: Dict = {}
         self.__average_locations: Dict[str, np.ndarray] = {}
 
+    @property
+    def get_total_simulations(self):
+        return self.__total_simulations
+
     def add_simulation(self, name: str, simulation: Simulation) -> None:
+        self.__total_simulations += 1
         for walker_name, walker_info in simulation.walkers.items():
             if walker_name not in self.__simulations:
                 self.__simulations[walker_name] = {}
@@ -43,8 +49,8 @@ class Statistics:
                 if walker_name not in total_locations:
                     total_locations[walker_name] = np.zeros_like(locations, dtype=float)
 
-                # Add the locations of this simulation to the total locations
-                total_locations[walker_name] += locations
+                # Add the absolute values of the locations of this simulation to the total locations
+                total_locations[walker_name] += np.abs(locations)
 
                 # Increment the count of simulations for this walker
                 simulation_counts[walker_name] += 1
@@ -69,12 +75,12 @@ class Statistics:
 
     def calculate_distances_from_axis(self, axis: str = 'X') -> Dict[str, List[float]]:
         distances = {}
-        axis_index = {'X': 0, 'Y': 1, 'Z': 2}[axis.upper()]
+        axis_indices = {'X': (1, 2), 'Y': (0, 2), 'Z': (0, 1)}[axis.upper()]
         for walker, locations in self.__average_locations.items():
             # Convert locations to a NumPy array for efficient computation
             locations_array = np.array(locations)
             # Calculate distances using vectorized operations
-            raw_distances = np.abs(locations_array[:, axis_index])
+            raw_distances = np.sqrt(np.sum(np.square(locations_array[:, axis_indices]), axis=1))
             # Normalize distances to 5 decimal points
             distances[walker] = list(np.around(raw_distances, decimals=5))
         return distances
@@ -146,31 +152,31 @@ class Statistics:
 
         return walker_passed_y_averages
 
-
+#
 # if __name__ == '__main__':
 #     simulation1 = Simulation()
 #
 #     # Add some walkers
 #     walker1 = OneUnitRandomWalker()
 #     walker2 = DiscreteStepWalker()
-#     walker3 = ProbabilisticWalker(100, 1000, 100, 100, 100)
+#     # walker3 = BiasedWalker(100, 1000, 100, 100, 100)
 #     walker4 = RandomStepWalker()
 #     simulation1.add_walker(walker1)
 #     simulation1.add_walker(walker2)
-#     simulation1.add_walker(walker3)
+#     # simulation1.add_walker(walker3)
 #     simulation1.add_walker(walker4)
 #     # Create instance of Statistics
 #     statistics = Statistics()
 #
 #     # Run simulation for 10 steps
-#     for i in range(1, 100):
-#         simulation1.simulate(1000)
+#     for i in range(1, 3):
+#         simulation1.simulate(500)
 #
-#         # for walker_name, walker_info in simulation1.walkers.items():
-#         #     print(f"Walker {walker_name}:")
-#         #     print(f"  Locations: {walker_info[WALKER_LOCATIONS]}")
-#         #     print(f"  Steps to escape radius 10: {walker_info[RADIUS_10]}")
-#         #     print(f"  Number of times passed y-axis: {walker_info[PASSED_Y]}")
+#         for walker_name, walker_info in simulation1.walkers.items():
+#             print(f"Walker {walker_name}:")
+#             print(f"  Locations: {walker_info[WALKER_LOCATIONS]}")
+#             print(f"  Steps to escape radius 10: {walker_info[RADIUS_10]}")
+#             print(f"  Number of times passed y-axis: {walker_info[PASSED_Y]}")
 #
 #         statistics.add_simulation(f"Simulation {i}", simulation1)
 #         simulation1.reset()
@@ -191,6 +197,9 @@ class Statistics:
 #     print(distances_from_axis_y)
 #     print(escape_radius_10_stats)
 #     print(passed_y_stats)
+#
+#     g = Graph(statistics)
+#     g.plot_average_distance_from_origin()
 
 
 

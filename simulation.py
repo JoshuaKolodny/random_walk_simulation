@@ -1,4 +1,9 @@
 from typing import Dict, List, Union
+
+from Walker.biased_walker import BiasedWalker
+from Walker.discrete_step_walker import DiscreteStepWalker
+from Walker.one_unit_random_walker import OneUnitRandomWalker
+from Walker.random_step_walker import RandomStepWalker
 from Walker.walker import Walker
 from obstacles_and_barriers import *
 from portal_gate import PortalGate
@@ -161,7 +166,7 @@ class Simulation:
 #     # Add some walkers
 #     walker1 = OneUnitRandomWalker()
 #     walker2 = DiscreteStepWalker()
-#     walker3 = ProbabilisticWalker(100, 1000, 100, 100, 100)
+#     walker3 = BiasedWalker(100, 1000, 100, 100, 100)
 #     walker4 = RandomStepWalker()
 #     simulation.add_walker(walker1)
 #     simulation.add_walker(walker2)
@@ -169,7 +174,7 @@ class Simulation:
 #     simulation.add_walker(walker4)
 #
 #     # Run simulation for 2 steps
-#     simulation.simulate(2)
+#     simulation.simulate(500)
 #
 #     # Check the results
 #     for walker_name, walker_info in simulation.walkers.items():
