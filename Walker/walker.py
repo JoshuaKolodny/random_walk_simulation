@@ -93,3 +93,5 @@ class Walker(ABC):
         z_diff = self.__z - point[Z]
         distance = (x_diff ** 2 + y_diff ** 2 + z_diff ** 2) ** 0.5
         return distance
+
+

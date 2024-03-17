@@ -8,16 +8,67 @@ PASSED_Y = 3
 
 
 class Statistics:
+    """
+    A class used to collect and calculate statistics from a simulation.
+
+    ...
+
+    Attributes
+    ----------
+    __total_simulations : int
+        the total number of simulations
+    __simulations : dict
+        a dictionary of simulations
+    __average_locations : dict
+        a dictionary of average locations for each walker
+
+    Methods
+    -------
+    add_simulation(name, simulation):
+        Adds a simulation to the statistics.
+    calculate_average_locations_per_cell():
+        Calculates the average locations per cell for each walker.
+    calculate_average_distance_from_origin():
+        Calculates the average distance from the origin for each walker.
+    calculate_distances_from_axis(axis):
+        Calculates the distances from a specified axis for each walker.
+    calculate_escape_radius_10():
+        Calculates the average number of steps it took for each walker to escape a radius of 10 units.
+    calculate_average_passed_y():
+        Calculates the average number of times each walker passed the y-axis in all simulations.
+    """
+
     def __init__(self) -> None:
+        """
+        Constructs all the necessary attributes for the Statistics object.
+        """
         self.__total_simulations = 0
         self.__simulations: Dict = {}
         self.__average_locations: Dict[str, np.ndarray] = {}
 
     @property
     def get_total_simulations(self):
+        """
+        Returns the total number of simulations.
+
+        Returns
+        -------
+        int
+            the total number of simulations
+        """
         return self.__total_simulations
 
     def add_simulation(self, name: str, simulation: Simulation) -> None:
+        """
+        Adds a simulation to the statistics.
+
+        Parameters
+        ----------
+        name : str
+            the name of the simulation
+        simulation : Simulation
+            the simulation to be added
+        """
         self.__total_simulations += 1
         for walker_name, walker_info in simulation.walkers.items():
             if walker_name not in self.__simulations:
@@ -31,6 +82,14 @@ class Statistics:
             }
 
     def calculate_average_locations_per_cell(self) -> Dict[str, np.ndarray]:
+        """
+        Calculates the average locations per cell for each walker.
+
+        Returns
+        -------
+        dict
+            a dictionary where the keys are walker names and the values are numpy arrays of average locations
+        """
         # Initialize a dictionary to store the total locations for each walker
         total_locations: Dict[str, np.ndarray] = {}
         simulation_counts: Dict[str, int] = {}
@@ -62,6 +121,14 @@ class Statistics:
         return self.__average_locations
 
     def calculate_average_distance_from_origin(self) -> Dict[str, List[float]]:
+        """
+        Calculates the average distance from the origin for each walker.
+
+        Returns
+        -------
+        dict
+            a dictionary where the keys are walker names and the values are lists of average distances
+        """
         distances = {}
         origin_array = np.array((0, 0, 0))
         for walker, locations in self.__average_locations.items():
@@ -74,6 +141,19 @@ class Statistics:
         return distances
 
     def calculate_distances_from_axis(self, axis: str = 'X') -> Dict[str, List[float]]:
+        """
+        Calculates the distances from a specified axis for each walker.
+
+        Parameters
+        ----------
+        axis : str, optional
+            the axis from which distances are calculated (default is 'X')
+
+        Returns
+        -------
+        dict
+            a dictionary where the keys are walker names and the values are lists of distances
+        """
         distances = {}
         axis_indices = {'X': (1, 2), 'Y': (0, 2), 'Z': (0, 1)}[axis.upper()]
         for walker, locations in self.__average_locations.items():

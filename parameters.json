@@ -1,6 +1,6 @@
 {
-    "num_simulations": 20,
-    "num_steps": 500,
+    "num_simulations": 100,
+    "num_steps": 1000,
     "walkers": {
         "BiasedWalker": {
             "Walker1": {
@@ -9,7 +9,7 @@
                 "down_prob": 0.25,
                 "left_prob": 0.25,
                 "right_prob": 0.25,
-                "to_origin_prob": 0.0
+                "to_origin_prob": 0.2
             },
             "Walker2": {
                 "count": 2,

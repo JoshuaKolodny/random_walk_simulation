@@ -1,6 +1,7 @@
 from Walker.walker import Walker
 import random
 
+
 class DiscreteStepWalker(Walker):
     """
     A Walker subclass that simulates a discrete step random walk.
