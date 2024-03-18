@@ -3,48 +3,154 @@ from tkinter import messagebox, ttk
 from main import *
 
 
+class GuiHelper:
+    @classmethod
+    def create_label_entry_pair(cls, frame, text, row):
+        pair_frame = tk.Frame(frame)
+        pair_frame.grid(row=row, column=0, padx=5, pady=5, sticky=tk.W + tk.E)
+
+        label = tk.Label(pair_frame, text=text)
+        label.grid(row=0, column=0, sticky=tk.E)
+
+        entry = tk.Entry(pair_frame)
+        entry.grid(row=0, column=1, sticky=tk.W)
+
+        pair_frame.grid_columnconfigure(0, weight=1)  # Allow the label to expand
+        pair_frame.grid_columnconfigure(1, weight=1)  # Allow the entry to expand
+
+        # Add the Entry widget as an attribute to the Frame object
+        pair_frame.entry = entry
+
+        return pair_frame
+
+
 class SimulationGUI:
     def __init__(self, root, controller):
         self.root = root
         self.controller = controller
-        self.root.title("Simulation Parameters")
-        self.root.geometry("500x600")  # Set the size of the window to 400x300
+        self.root.title("Random Walk Simulation")
+        self.root.geometry("1000x600")  # Set the size of the window to 400x300
         # self.root.resizable(False, False)  # Prevent the window from being resizable
 
         # Configure the grid to expand to fill the available space
         self.root.grid_columnconfigure(0, weight=1)
         self.root.grid_rowconfigure(0, weight=1)
+        self.root.grid_columnconfigure(2, weight=1, minsize=200)
 
+        self._create_gui_components()
+
+    def _create_gui_components(self):
         self._create_walker_selection()
         self._create_walker_table()
         self._create_simulation_parameters()
         self._create_simulation_buttons()
+        self._create_obstacle_creation()
+        self._create_obstacle_table()
 
-        # Call update_walker_parameters to add self.biased_walker_frame to the grid
-        self.update_walker_parameters()
+    def _create_obstacle_creation(self):
+        self.obstacle_frame = tk.Frame(self.root)
+        self.obstacle_frame.grid(row=0, column=2, padx=5, pady=5, sticky=tk.W + tk.E + tk.N + tk.S)
+
+        self.obstacle_type_var = tk.StringVar()  # Create a StringVar
+        self.obstacle_type_var.trace('w', self.update_obstacle_parameters)  # Use trace on the StringVar
+
+        self.obstacle_type_frame = tk.Frame(self.obstacle_frame)
+        self.obstacle_type_frame.grid(row=0, column=0, columnspan=2, padx=5, pady=2)  # Decrease pady to reduce the gap
+
+        tk.Label(self.obstacle_type_frame, text="Select Obstacle Type:").grid(row=0, column=0, padx=5, pady=5)
+        self.obstacle_type = ttk.Combobox(self.obstacle_type_frame,
+                                          values=['Barrier', 'Portal Gate'], state='readonly',
+                                          textvariable=self.obstacle_type_var)
+        self.obstacle_type.grid(row=0, column=1, padx=5, pady=5)
+
+        self.obstacle_name = GuiHelper.create_label_entry_pair(self.obstacle_frame, "Obstacle name:", 1)
+        self.obstacle_x = GuiHelper.create_label_entry_pair(self.obstacle_frame, "X:", 2)
+        self.obstacle_y = GuiHelper.create_label_entry_pair(self.obstacle_frame, "Y:", 3)
+        self.obstacle_width = GuiHelper.create_label_entry_pair(self.obstacle_frame, "Width:", 4)
+        self.obstacle_height = GuiHelper.create_label_entry_pair(self.obstacle_frame, "Height:", 5)
+
+        self.obstacle_dest_x = GuiHelper.create_label_entry_pair(self.obstacle_frame, "Dest X:", 6)
+        self.obstacle_dest_y = GuiHelper.create_label_entry_pair(self.obstacle_frame, "Dest Y:", 7)
+
+        self.add_obstacle_button = tk.Button(self.obstacle_frame, text="Add Obstacle", command=self.add_obstacle)
+        self.add_obstacle_button.grid(row=8, column=0, columnspan=2)
+
+    def update_obstacle_parameters(self, *args):
+        obstacle_type = self.obstacle_type.get()
+
+        if obstacle_type == 'Portal Gate':
+            self.obstacle_dest_x.grid()
+            self.obstacle_dest_y.grid()
+        else:
+            self.obstacle_dest_x.grid_remove()
+            self.obstacle_dest_y.grid_remove()
+
+    def add_obstacle(self):
+        obstacle_type = self.obstacle_type.get()
+        obstacle_name = self.obstacle_name.entry.get()
+        x = float(self.obstacle_x.entry.get())
+        y = float(self.obstacle_y.entry.get())
+        width = float(self.obstacle_width.entry.get())
+        height = float(self.obstacle_height.entry.get())
+
+        # Assign default values to dest_x and dest_y
+        dest_x = dest_y = None
+
+        if obstacle_type == 'Portal Gate':
+            dest_x = float(self.obstacle_dest_x.entry.get())
+            dest_y = float(self.obstacle_dest_y.entry.get())
+            self.controller.add_portal_gate(obstacle_name, x, y, width, height, dest_x, dest_y)
+        else:
+            self.controller.add_barrier(obstacle_name, x, y, width, height)
+
+        self.obstacle_table.insert("", "end", values=(obstacle_name, x, y, width, height, dest_x, dest_y))
+
+    def _create_obstacle_table(self):
+        self.obstacle_table = ttk.Treeview(self.obstacle_frame,
+                                           columns=("Obstacle Name", "X", "Y", "Width", "Height", "Dest X", "Dest Y"),
+                                           show="headings", height=5)
+        self.obstacle_table.grid(row=9, column=0, padx=5, pady=5, sticky=tk.W + tk.E + tk.N + tk.S)
+        self.obstacle_table.column("Obstacle Name", width=100)
+        self.obstacle_table.column("X", width=50)
+        self.obstacle_table.column("Y", width=50)
+        self.obstacle_table.column("Width", width=50)
+        self.obstacle_table.column("Height", width=50)
+        self.obstacle_table.column("Dest X", width=50)
+        self.obstacle_table.column("Dest Y", width=50)
+
+        self.obstacle_table.heading("Obstacle Name", text="Obstacle Name")
+        self.obstacle_table.heading("X", text="X")
+        self.obstacle_table.heading("Y", text="Y")
+        self.obstacle_table.heading("Width", text="Width")
+        self.obstacle_table.heading("Height", text="Height")
+        self.obstacle_table.heading("Dest X", text="Dest X")
+        self.obstacle_table.heading("Dest Y", text="Dest Y")
 
     def _create_walker_selection(self):
         self.walker_frame = tk.Frame(self.root)
-        self.walker_frame.grid(row=0, column=0, columnspan=2, padx=10, pady=5, sticky=tk.W + tk.E + tk.N + tk.S)
+        self.walker_frame.grid(row=0, column=0, columnspan=1, padx=5, pady=5, sticky=tk.W + tk.E + tk.N + tk.S)
 
         # Configure the grid to expand to fill the available space
         self.walker_frame.grid_columnconfigure(0, weight=1)
         self.walker_frame.grid_rowconfigure(0, weight=1)
-        tk.Label(self.walker_frame, text="Walker Type:").grid(row=0, padx=5, pady=5)
 
         self.walker_type_var = tk.StringVar()  # Create a StringVar
         self.walker_type_var.trace('w', self.update_walker_parameters)  # Use trace on the StringVar
 
-        self.walker_type = ttk.Combobox(self.walker_frame,
+        self.walker_type_frame = tk.Frame(self.walker_frame)
+        self.walker_type_frame.grid(row=0, column=0, columnspan=2, padx=5, pady=2)  # Decrease pady to reduce the gap
+
+        tk.Label(self.walker_type_frame, text="Select Walker Type:").grid(row=0, column=0, padx=5, pady=5)
+        self.walker_type = ttk.Combobox(self.walker_type_frame,
                                         values=['BiasedWalker', 'OneUnitRandomWalker', 'DiscreteStepWalker',
                                                 'RandomStepWalker'], state='readonly',
                                         textvariable=self.walker_type_var)
-        tk.Label(self.walker_frame, text="Select Walker Type:").grid(row=0, column=0, padx=5, pady=5)
         self.walker_type.grid(row=0, column=1, padx=5, pady=5)
 
         # BiasedWalker parameters
         self.biased_walker_frame = tk.Frame(self.walker_frame)
-        self.biased_walker_frame.grid(row=1, column=0, columnspan=2, rowspan=2, sticky=tk.W + tk.E + tk.N + tk.S)
+        self.biased_walker_frame.grid(row=1, column=0, columnspan=2, rowspan=1, padx=5, pady=2,
+                                      sticky=tk.W + tk.E + tk.N + tk.S)  # Decrease pady to reduce the gap
 
         # Configure the grid to expand to fill the available space
         self.biased_walker_frame.grid_columnconfigure(0, weight=1)
@@ -56,13 +162,17 @@ class SimulationGUI:
         self.right_prob = tk.Entry(self.biased_walker_frame)
         self.to_origin_prob = tk.Entry(self.biased_walker_frame)
 
-        tk.Label(self.walker_frame, text="Walker Count:").grid(row=2, padx=5, pady=5)
+        # Create a new frame for the walker count
+        self.walker_count_frame = tk.Frame(self.walker_frame)
+        self.walker_count_frame.grid(row=3, column=0, columnspan=2)  # Center the frame
+
+        tk.Label(self.walker_count_frame, text="Amount of this walker to add:").grid(row=0, column=0, padx=5, pady=5)
         vcmd = (self.root.register(self.validate_walker_count), '%P')
-        self.walker_count = tk.Entry(self.walker_frame, validate='key', validatecommand=vcmd)
-        self.walker_count.grid(row=2, column=1, padx=5, pady=5)
+        self.walker_count = tk.Entry(self.walker_count_frame, validate='key', validatecommand=vcmd)
+        self.walker_count.grid(row=0, column=1, padx=5, pady=5)
 
         self.add_walker_button = tk.Button(self.walker_frame, text="Add Walker", command=self.add_walker)
-        self.add_walker_button.grid(row=5, column=0, columnspan=2, padx=5, pady=5)
+        self.add_walker_button.grid(row=4, column=0, columnspan=2, padx=5, pady=5)
 
     def update_walker_parameters(self, *args):
         walker_type = self.walker_type.get()
@@ -83,7 +193,7 @@ class SimulationGUI:
                 widget.grid_remove()
 
     def _create_walker_table(self):
-        self.walker_table = ttk.Treeview(self.walker_frame, columns=('Type', 'Count'), show='headings')
+        self.walker_table = ttk.Treeview(self.walker_frame, columns=('Type', 'Count'), show='headings', height=5)
         self.walker_table.heading('Type', text='Walker Type')
         self.walker_table.heading('Count', text='Walker Count')
         self.walker_table.grid(row=6, column=0, columnspan=2, padx=5, pady=5)
@@ -252,6 +362,20 @@ class SimulationController:
                 return
             self.model.simulation.add_walker(walker)
             self.walkers[walker_type] = self.walkers.get(walker_type, 0) + 1  # Increment the count of the walker type
+
+    def add_barrier(self, barrier_name, x, y, width, height):
+        try:
+            barrier = Barrier2D(x, y, width, height)
+            self.model.simulation.add_barrier(barrier_name, barrier)
+        except Exception as e:
+            self.view.show_error("Error", str(e))
+
+    def add_portal_gate(self, portal_gate_name, x, y, width, height, dest_x, dest_y):
+        try:
+            portal_gate = PortalGate(x, y, width, height, dest_x, dest_y)
+            self.model.simulation.add_portal_gate(portal_gate_name, portal_gate)
+        except Exception as e:
+            self.view.show_error("Error", str(e))
 
     def remove_walker(self, walker_type):
         if walker_type in self.walkers:
