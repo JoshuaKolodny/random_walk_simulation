@@ -40,6 +40,24 @@ class SimulationGUI:
 
         self._create_gui_components()
 
+    def create_styled_button(self, parent, **kwargs):
+        # Define the button style
+        button_hover_color = 'gray'
+        regular_color = 'lightgray'
+        button_active_color = 'slateblue'
+
+        button_style = {"font": ("Arial", 10),
+                        "borderwidth": 1,
+                        "relief": tk.RAISED,
+                        "bg": regular_color,
+                        "activebackground": button_active_color,
+                        "activeforeground": button_hover_color}
+
+        # Create the button with the desired style
+        button = tk.Button(parent, **button_style, **kwargs)
+
+        return button
+
     def _create_gui_components(self):
         self._create_walker_selection()
         self._create_walker_table()
@@ -73,7 +91,7 @@ class SimulationGUI:
         self.obstacle_dest_x = GuiHelper.create_label_entry_pair(self.obstacle_frame, "Dest X:", 6)
         self.obstacle_dest_y = GuiHelper.create_label_entry_pair(self.obstacle_frame, "Dest Y:", 7)
 
-        self.add_obstacle_button = tk.Button(self.obstacle_frame, text="Add Obstacle", command=self.add_obstacle)
+        self.add_obstacle_button = self.create_styled_button(self.obstacle_frame, text="Add Obstacle", command=self.add_obstacle)
         self.add_obstacle_button.grid(row=8, column=0, columnspan=2)
 
     def update_obstacle_parameters(self, *args):
@@ -88,18 +106,47 @@ class SimulationGUI:
 
     def add_obstacle(self):
         obstacle_type = self.obstacle_type.get()
+        if not obstacle_type:
+            self.show_error("Error", "Please select an obstacle type!")
+            return
         obstacle_name = self.obstacle_name.entry.get()
-        x = float(self.obstacle_x.entry.get())
-        y = float(self.obstacle_y.entry.get())
-        width = float(self.obstacle_width.entry.get())
-        height = float(self.obstacle_height.entry.get())
+        x_str = self.obstacle_x.entry.get()
+        y_str = self.obstacle_y.entry.get()
+        width_str = self.obstacle_width.entry.get()
+        height_str = self.obstacle_height.entry.get()
+
+        # Check if any of the entry fields are empty
+        if not obstacle_name or not x_str or not y_str or not width_str or not height_str:
+            self.show_error("Error", "Please fill in all fields!")
+            return
+
+        try:
+            x = float(x_str)
+            y = float(y_str)
+            width = float(width_str)
+            height = float(height_str)
+        except ValueError:
+            self.show_error("Error", "Please enter valid numbers for x, y, width, and height!")
+            return
 
         # Assign default values to dest_x and dest_y
         dest_x = dest_y = None
 
         if obstacle_type == 'Portal Gate':
-            dest_x = float(self.obstacle_dest_x.entry.get())
-            dest_y = float(self.obstacle_dest_y.entry.get())
+            dest_x_str = self.obstacle_dest_x.entry.get()
+            dest_y_str = self.obstacle_dest_y.entry.get()
+
+            # Check if dest_x and dest_y fields are empty
+            if not dest_x_str or not dest_y_str:
+                self.show_error("Error", "Please fill in all fields for Portal Gate!")
+                return
+
+            try:
+                dest_x = float(dest_x_str)
+                dest_y = float(dest_y_str)
+            except ValueError:
+                self.show_error("Error", "Please enter valid numbers for dest_x and dest_y!")
+                return
 
         added_obstacle = False
         # Add the obstacle to the simulation and check if it was added successfully
@@ -114,7 +161,12 @@ class SimulationGUI:
 
     def remove_obstacle(self):
         # Get the selected obstacle from the obstacle table
-        selected_item = self.obstacle_table.selection()[0]
+        selected_items = self.obstacle_table.selection()
+        if not selected_items:
+            self.show_error("Error", "Please select an obstacle to remove!")
+            return
+
+        selected_item = selected_items[0]
         selected_obstacle = self.obstacle_table.item(selected_item)['values'][0]
 
         # Call the remove_obstacle method of the controller to remove the obstacle from the simulation
@@ -200,7 +252,7 @@ class SimulationGUI:
         self.walker_count = tk.Entry(self.walker_count_frame, validate='key', validatecommand=vcmd)
         self.walker_count.grid(row=0, column=1, padx=5, pady=5)
 
-        self.add_walker_button = tk.Button(self.walker_frame, text="Add Walker", command=self.add_walker)
+        self.add_walker_button = self.create_styled_button(self.walker_frame, text="Add Walker", command=self.add_walker)
         self.add_walker_button.grid(row=5, column=0, columnspan=2, padx=5, pady=5)
 
     def update_walker_parameters(self, *args):
@@ -225,7 +277,7 @@ class SimulationGUI:
         self.button_label_frame = tk.Frame(self.walker_frame)
         self.button_label_frame.grid(row=7, column=0, columnspan=2)  # Center the frame
 
-        self.remove_walker_button = tk.Button(self.button_label_frame, text="Remove Walker", command=self.remove_walker)
+        self.remove_walker_button = self.create_styled_button(self.button_label_frame, text="Remove Walker", command=self.remove_walker)
         self.remove_walker_button.grid(row=0, column=0, padx=5, pady=5)  # Add spacing
 
         # Add the walker count label to the new frame
@@ -266,7 +318,7 @@ class SimulationGUI:
         return True  # Always return True to accept the input
 
     def _create_simulation_buttons(self):
-        self.run_button = tk.Button(self.simulation_frame, text="Run Simulation", command=self.run_simulation)
+        self.run_button = self.create_styled_button(self.simulation_frame, text="Run Simulation", command=self.run_simulation)
         self.run_button.grid(row=2, column=0, columnspan=2, padx=5, pady=5)
 
     def add_walker(self):
