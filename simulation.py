@@ -105,6 +105,27 @@ class Simulation:
         self.__walkers[unique_walker_name] = [walker, [], 0, []]
         return True
 
+    def remove_walker(self, walker_name: str) -> bool:
+        """
+        Removes all walkers from the simulation that start with the given walker name.
+
+        Parameters
+        ----------
+        walker_name : str
+            the start of the name of the walkers to be removed
+
+        Returns
+        -------
+        bool
+            True if any walkers were removed successfully, False otherwise
+        """
+        removed = False
+        for key in list(self.__walkers.keys()):  # Use list to create a copy of keys for iteration
+            if key.startswith(walker_name):
+                del self.__walkers[key]
+                removed = True
+        return removed
+
     def __add_obstacle(self, obstacle_name: str, obstacle: Obstacle, obstacle_dict: Dict[str, Obstacle]) -> bool:
         """
         Adds an obstacle to the simulation.
@@ -112,8 +133,8 @@ class Simulation:
         Parameters
         ----------
         obstacle_name : str- the name of the obstacle
-        obstacle : Obstacle- the obstacle to be added to the simulation
-        obstacle_dict : dict- the dictionary to which the obstacle will be added
+        obstacle : Obstacle-the obstacle to be added to the simulation
+        obstacle_dict : dict-the dictionary to which the obstacle will be added
 
         Returns
         -------
@@ -313,7 +334,7 @@ class Simulation:
                     # If no collisions occurred, the move is valid
                     valid_move = True
 
-                # If a valid move could not be found after the maximum number of attempts, stop the simulation for this walker
+                # If a valid move not found after maximum attempts, stop the simulation for this walker
                 if attempts == max_attempts:
                     print(
                         f"Walker {key} could not find a valid move after {max_attempts} attempts."
