@@ -82,6 +82,30 @@ class Simulation:
         """
         return self.__origin
 
+    @property
+    def barriers(self) -> Dict[str, Barrier2D]:
+        """
+        Returns the barriers present in the simulation.
+
+        Returns
+        -------
+        dict
+            a dictionary of barriers present in the simulation
+        """
+        return self.__barriers
+
+    @property
+    def portal_gates(self) -> Dict[str, PortalGate]:
+        """
+        Returns the portal gates present in the simulation.
+
+        Returns
+        -------
+        dict
+            a dictionary of portal gates present in the simulation
+        """
+        return self.__portal_gates
+
     def add_walker(self, walker: Walker) -> bool:
         """
         Adds a walker to the simulation.

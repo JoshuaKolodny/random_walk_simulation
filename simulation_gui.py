@@ -34,8 +34,9 @@ class SimulationGUI:
 
         # Configure the grid to expand to fill the available space
         self.root.grid_columnconfigure(0, weight=1)
+        self.root.grid_columnconfigure(1, weight=1)
+        self.root.grid_columnconfigure(2, weight=1)
         self.root.grid_rowconfigure(0, weight=1)
-        self.root.grid_columnconfigure(2, weight=1, minsize=200)
 
         self._create_gui_components()
 
@@ -99,11 +100,28 @@ class SimulationGUI:
         if obstacle_type == 'Portal Gate':
             dest_x = float(self.obstacle_dest_x.entry.get())
             dest_y = float(self.obstacle_dest_y.entry.get())
-            self.controller.add_portal_gate(obstacle_name, x, y, width, height, dest_x, dest_y)
-        else:
-            self.controller.add_barrier(obstacle_name, x, y, width, height)
 
-        self.obstacle_table.insert("", "end", values=(obstacle_name, x, y, width, height, dest_x, dest_y))
+        added_obstacle = False
+        # Add the obstacle to the simulation and check if it was added successfully
+        if obstacle_type == 'Barrier':
+            added_obstacle = self.controller.add_barrier(obstacle_name, x, y, width, height)
+        elif obstacle_type == 'Portal Gate':
+            added_obstacle = self.controller.add_portal_gate(obstacle_name, x, y, width, height, dest_x, dest_y)
+
+        # If the obstacle was added successfully, add it to the obstacle table
+        if added_obstacle:
+            self.obstacle_table.insert("", "end", values=(obstacle_name, x, y, width, height, dest_x, dest_y))
+
+    def remove_obstacle(self):
+        # Get the selected obstacle from the obstacle table
+        selected_item = self.obstacle_table.selection()[0]
+        selected_obstacle = self.obstacle_table.item(selected_item)['values'][0]
+
+        # Call the remove_obstacle method of the controller to remove the obstacle from the simulation
+        self.controller.remove_obstacle(selected_obstacle)
+
+        # Remove the obstacle from the obstacle table in the GUI
+        self.obstacle_table.delete(selected_item)
 
     def _create_obstacle_table(self):
         self.obstacle_table = ttk.Treeview(self.obstacle_frame,
@@ -126,9 +144,17 @@ class SimulationGUI:
         self.obstacle_table.heading("Dest X", text="Dest X")
         self.obstacle_table.heading("Dest Y", text="Dest Y")
 
+        # Create a new frame for the button
+        self.obstacle_button_frame = tk.Frame(self.obstacle_frame)
+        self.obstacle_button_frame.grid(row=10, column=0, padx=5, pady=5)  # Center the frame
+
+        self.remove_obstacle_button = tk.Button(self.obstacle_button_frame, text="Remove Obstacle",
+                                                command=self.remove_obstacle)
+        self.remove_obstacle_button.grid(row=0, column=0, padx=5, pady=5)  # Add spacing
+
     def _create_walker_selection(self):
         self.walker_frame = tk.Frame(self.root)
-        self.walker_frame.grid(row=0, column=0, columnspan=1, padx=5, pady=5, sticky=tk.W + tk.E + tk.N + tk.S)
+        self.walker_frame.grid(row=0, column=0, padx=5, pady=5, sticky=tk.W + tk.E + tk.N + tk.S)
 
         # Configure the grid to expand to fill the available space
         self.walker_frame.grid_columnconfigure(0, weight=1)
@@ -149,22 +175,25 @@ class SimulationGUI:
 
         # BiasedWalker parameters
         self.biased_walker_frame = tk.Frame(self.walker_frame)
-        self.biased_walker_frame.grid(row=1, column=0, columnspan=2, rowspan=1, padx=5, pady=2,
+        self.biased_walker_frame.grid(row=1, column=0, padx=5, pady=2,
                                       sticky=tk.W + tk.E + tk.N + tk.S)  # Decrease pady to reduce the gap
 
         # Configure the grid to expand to fill the available space
         self.biased_walker_frame.grid_columnconfigure(0, weight=1)
         self.biased_walker_frame.grid_rowconfigure(0, weight=1)
 
-        self.up_prob = tk.Entry(self.biased_walker_frame)
-        self.down_prob = tk.Entry(self.biased_walker_frame)
-        self.left_prob = tk.Entry(self.biased_walker_frame)
-        self.right_prob = tk.Entry(self.biased_walker_frame)
-        self.to_origin_prob = tk.Entry(self.biased_walker_frame)
+        # Create label-entry pairs for each parameter
+        self.biased_walker_params = {
+            'up_prob': GuiHelper.create_label_entry_pair(self.biased_walker_frame, "Up Probability:", 0),
+            'down_prob': GuiHelper.create_label_entry_pair(self.biased_walker_frame, "Down Probability:", 1),
+            'left_prob': GuiHelper.create_label_entry_pair(self.biased_walker_frame, "Left Probability:", 2),
+            'right_prob': GuiHelper.create_label_entry_pair(self.biased_walker_frame, "Right Probability:", 3),
+            'to_origin_prob': GuiHelper.create_label_entry_pair(self.biased_walker_frame, "To Origin Probability:", 4)
+        }
 
         # Create a new frame for the walker count
         self.walker_count_frame = tk.Frame(self.walker_frame)
-        self.walker_count_frame.grid(row=3, column=0, columnspan=2)  # Center the frame
+        self.walker_count_frame.grid(row=4, column=0, columnspan=2)  # Center the frame
 
         tk.Label(self.walker_count_frame, text="Amount of this walker to add:").grid(row=0, column=0, padx=5, pady=5)
         vcmd = (self.root.register(self.validate_walker_count), '%P')
@@ -172,25 +201,19 @@ class SimulationGUI:
         self.walker_count.grid(row=0, column=1, padx=5, pady=5)
 
         self.add_walker_button = tk.Button(self.walker_frame, text="Add Walker", command=self.add_walker)
-        self.add_walker_button.grid(row=4, column=0, columnspan=2, padx=5, pady=5)
+        self.add_walker_button.grid(row=5, column=0, columnspan=2, padx=5, pady=5)
 
     def update_walker_parameters(self, *args):
         walker_type = self.walker_type.get()
 
+        # Hide all parameter pairs
+        for pair in self.biased_walker_params.values():
+            pair.grid_remove()
+
         if walker_type == 'BiasedWalker':
-            tk.Label(self.biased_walker_frame, text="Up Probability:").grid(row=0, column=0)
-            self.up_prob.grid(row=0, column=1)
-            tk.Label(self.biased_walker_frame, text="Down Probability:").grid(row=0, column=2)
-            self.down_prob.grid(row=0, column=3)
-            tk.Label(self.biased_walker_frame, text="Left Probability:").grid(row=0, column=4)
-            self.left_prob.grid(row=0, column=5)
-            tk.Label(self.biased_walker_frame, text="Right Probability:").grid(row=0, column=6)
-            self.right_prob.grid(row=0, column=7)
-            tk.Label(self.biased_walker_frame, text="To Origin Probability:").grid(row=0, column=8)
-            self.to_origin_prob.grid(row=0, column=9)
-        else:
-            for widget in self.biased_walker_frame.winfo_children():
-                widget.grid_remove()
+            # Show parameter pairs for BiasedWalker
+            for pair in self.biased_walker_params.values():
+                pair.grid()
 
     def _create_walker_table(self):
         self.walker_table = ttk.Treeview(self.walker_frame, columns=('Type', 'Count'), show='headings', height=5)
@@ -211,7 +234,7 @@ class SimulationGUI:
 
     def _create_simulation_parameters(self):
         self.simulation_frame = tk.Frame(self.root)
-        self.simulation_frame.grid(row=1, column=0, columnspan=2, padx=10, pady=20)  # Increase pady to raise the frame
+        self.simulation_frame.grid(row=1, column=1, padx=10, pady=20, sticky=tk.N + tk.S + tk.E + tk.W)
 
         tk.Label(self.simulation_frame, text="Number of Simulations:").grid(row=0, padx=5, pady=5)
         self.num_simulations = tk.Entry(self.simulation_frame)
@@ -271,18 +294,39 @@ class SimulationGUI:
             return
 
         if walker_type == 'BiasedWalker':
-            if not self.up_prob.get() or not self.down_prob.get() or not self.left_prob.get() or not self.right_prob.get() or not self.to_origin_prob.get():
+            up_prob = self.biased_walker_params['up_prob'].entry.get()
+            down_prob = self.biased_walker_params['down_prob'].entry.get()
+            left_prob = self.biased_walker_params['left_prob'].entry.get()
+            right_prob = self.biased_walker_params['right_prob'].entry.get()
+            to_origin_prob = self.biased_walker_params['to_origin_prob'].entry.get()
+
+            if not up_prob or not down_prob or not left_prob or not right_prob or not to_origin_prob:
                 self.show_error("Error", "Please enter all probabilities for the Biased Walker!")
                 return
-            up_prob = float(self.up_prob.get())
-            down_prob = float(self.down_prob.get())
-            left_prob = float(self.left_prob.get())
-            right_prob = float(self.right_prob.get())
-            to_origin_prob = float(self.to_origin_prob.get())
+
+            try:
+                up_prob = float(up_prob)
+                down_prob = float(down_prob)
+                left_prob = float(left_prob)
+                right_prob = float(right_prob)
+                to_origin_prob = float(to_origin_prob)
+
+                if up_prob < 0 or down_prob < 0 or left_prob < 0 or right_prob < 0 or to_origin_prob < 0:
+                    raise ValueError
+
+                if up_prob == 0 and down_prob == 0 and left_prob == 0 and right_prob == 0 and to_origin_prob == 0:
+                    raise ValueError
+
+            except ValueError:
+                self.show_error("Error",
+                                "Probabilities must be non-negative floats and at least one of them must be non-zero!")
+                return
+
             self.controller.add_walker(walker_type, walker_count, up_prob, down_prob, left_prob, right_prob,
                                        to_origin_prob)
         else:
             self.controller.add_walker(walker_type, walker_count)
+
         self.walker_type.set('')
         self.walker_count.delete(0, 'end')
 
@@ -366,16 +410,31 @@ class SimulationController:
     def add_barrier(self, barrier_name, x, y, width, height):
         try:
             barrier = Barrier2D(x, y, width, height)
-            self.model.simulation.add_barrier(barrier_name, barrier)
+            added = self.model.simulation.add_barrier(barrier_name, barrier)
+            if not added:
+                self.view.show_error("Error", "The new barrier intersects with an existing obstacle or the origin!")
+            return added
         except Exception as e:
             self.view.show_error("Error", str(e))
+            return False
 
     def add_portal_gate(self, portal_gate_name, x, y, width, height, dest_x, dest_y):
         try:
             portal_gate = PortalGate(x, y, width, height, dest_x, dest_y)
-            self.model.simulation.add_portal_gate(portal_gate_name, portal_gate)
+            added = self.model.simulation.add_portal_gate(portal_gate_name, portal_gate)
+            if not added:
+                self.view.show_error("Error", "The new portal gate intersects with an existing obstacle or the origin!")
+            return added
         except Exception as e:
             self.view.show_error("Error", str(e))
+            return False
+
+    def remove_obstacle(self, obstacle_name):
+        # Remove the obstacle from the simulation
+        if obstacle_name in self.model.simulation.barriers:
+            del self.model.simulation.barriers[obstacle_name]
+        elif obstacle_name in self.model.simulation.portal_gates:
+            del self.model.simulation.portal_gates[obstacle_name]
 
     def remove_walker(self, walker_type):
         if walker_type in self.walkers:
