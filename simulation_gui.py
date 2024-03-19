@@ -29,8 +29,8 @@ class SimulationGUI:
         self.root = root
         self.controller = controller
         self.root.title("Random Walk Simulation")
-        self.root.geometry("1000x600")  # Set the size of the window to 400x300
-        # self.root.resizable(False, False)  # Prevent the window from being resizable
+        self.root.geometry("1200x600")  # Set the size of the window to 400x300
+        self.root.resizable(False, False)  # Prevent the window from being resizable
 
         # Configure the grid to expand to fill the available space
         self.root.grid_columnconfigure(0, weight=1)
@@ -68,7 +68,7 @@ class SimulationGUI:
 
     def _create_obstacle_creation(self):
         self.obstacle_frame = tk.Frame(self.root)
-        self.obstacle_frame.grid(row=0, column=2, padx=5, pady=5, sticky=tk.W + tk.E + tk.N + tk.S)
+        self.obstacle_frame.grid(row=0, column=2, padx=15, pady=5, sticky=tk.E)  # Increase padx
 
         self.obstacle_type_var = tk.StringVar()  # Create a StringVar
         self.obstacle_type_var.trace('w', self.update_obstacle_parameters)  # Use trace on the StringVar
@@ -200,13 +200,13 @@ class SimulationGUI:
         self.obstacle_button_frame = tk.Frame(self.obstacle_frame)
         self.obstacle_button_frame.grid(row=10, column=0, padx=5, pady=5)  # Center the frame
 
-        self.remove_obstacle_button = tk.Button(self.obstacle_button_frame, text="Remove Obstacle",
-                                                command=self.remove_obstacle)
+        self.remove_obstacle_button = self.create_styled_button(self.obstacle_button_frame, text="Remove Obstacle",
+                                                                command=self.remove_obstacle)
         self.remove_obstacle_button.grid(row=0, column=0, padx=5, pady=5)  # Add spacing
 
     def _create_walker_selection(self):
         self.walker_frame = tk.Frame(self.root)
-        self.walker_frame.grid(row=0, column=0, padx=5, pady=5, sticky=tk.W + tk.E + tk.N + tk.S)
+        self.walker_frame.grid(row=0, column=0, padx=15, pady=5, sticky=tk.W)  # Increase padx
 
         # Configure the grid to expand to fill the available space
         self.walker_frame.grid_columnconfigure(0, weight=1)
@@ -428,6 +428,42 @@ class SimulationGUI:
         num_steps = int(num_steps_str)
         self.controller.run_simulation(num_simulations, num_steps)
 
+    def reset_gui(self):
+        # Reset walker type to 'OneUnitRandomWalker'
+        self.walker_type_var.set('OneUnitRandomWalker')
+
+        # Reset obstacle type to 'Barrier'
+        self.obstacle_type_var.set('Barrier')
+
+        # Clear the walker count entry field
+        self.walker_count.delete(0, 'end')
+
+        # Clear the obstacle entry fields
+        self.obstacle_name.entry.delete(0, 'end')
+        self.obstacle_x.entry.delete(0, 'end')
+        self.obstacle_y.entry.delete(0, 'end')
+        self.obstacle_width.entry.delete(0, 'end')
+        self.obstacle_height.entry.delete(0, 'end')
+        self.obstacle_dest_x.entry.delete(0, 'end')
+        self.obstacle_dest_y.entry.delete(0, 'end')
+
+        # Clear the walker table
+        for row in self.walker_table.get_children():
+            self.walker_table.delete(row)
+
+        # Clear the obstacle table
+        for row in self.obstacle_table.get_children():
+            self.obstacle_table.delete(row)
+
+        # Reset the walker count label
+        self.walker_count_label.config(text="Total Walkers: 0")
+
+        # Reset the simulation parameters
+        self.num_simulations.delete(0, 'end')
+        self.num_simulations.insert(0, '20')  # Insert the default value
+        self.num_steps.delete(0, 'end')
+        self.num_steps.insert(0, '500')  # Insert the default value
+
     def show_message(self, title, message):
         messagebox.showinfo(title, message)
 
@@ -483,10 +519,13 @@ class SimulationController:
 
     def remove_obstacle(self, obstacle_name):
         # Remove the obstacle from the simulation
-        if obstacle_name in self.model.simulation.barriers:
-            del self.model.simulation.barriers[obstacle_name]
-        elif obstacle_name in self.model.simulation.portal_gates:
-            del self.model.simulation.portal_gates[obstacle_name]
+        removed = self.model.simulation.remove_obstacle(obstacle_name)
+        if not removed:
+            self.view.show_error("Error", "The obstacle was not found in the simulation!")
+        else:
+            # If the obstacle was successfully removed, update the GUI
+            self.view.show_message("Success",
+                                   f"The obstacle '{obstacle_name}' was successfully removed from the simulation.")
 
     def remove_walker(self, walker_type):
         if walker_type in self.walkers:
@@ -497,40 +536,11 @@ class SimulationController:
             del self.walkers[walker_type]  # Remove the walker type from the dictionary
 
     def run_simulation(self, num_simulations, num_steps):
-        # Run the simulation with the given parameters
-        for i in range(num_simulations):
-            self.model.simulation.simulate(num_steps)
-            self.model.statistics.add_simulation(f"Simulation {i}",
-                                                 self.model.simulation)  # Add the simulation to the statistics
-            self.model.simulation.reset()  # Reset the simulation for the next run
-
-        # Calculate statistics
-        self.model.statistics.calculate_average_locations_per_cell()
-        average_distance_from_origin = self.model.statistics.calculate_average_distance_from_origin()
-        distances_from_axis_x = self.model.statistics.calculate_distances_from_axis(axis='Y')
-        distances_from_axis_y = self.model.statistics.calculate_distances_from_axis(axis='X')
-        escape_radius_10_stats = self.model.statistics.calculate_escape_radius_10()
-        passed_y_stats = self.model.statistics.calculate_average_passed_y()
-
-        # Save statistics to JSON file
-        stats_exporter = StatisticsExporter()  # Initialize a new StatisticsExporter object
-        stats_exporter.add_data('average_distance_from_origin', average_distance_from_origin)
-        stats_exporter.add_data('distances_from_axis_x', distances_from_axis_x)
-        stats_exporter.add_data('distances_from_axis_y', distances_from_axis_y)
-        stats_exporter.add_data('escape_radius_10_stats', escape_radius_10_stats)
-        stats_exporter.add_data('passed_y_stats', passed_y_stats)
-        stats_exporter.save_to_json('stats.json')  # Save the statistics to a JSON file
-
-        # Plot graphs
-        g = Graph(self.model.statistics)  # Initialize a new Graph object
-        g.plot_average_distance_from_origin()
-        g.plot_distances_from_axis(axis='X')
-        g.plot_distances_from_axis(axis='Y')
-        g.plot_escape_radius_10()
-        g.plot_average_passed_y()
-
+        self.model.run_simulation(num_simulations, num_steps)
         # Show a message box when the simulation is done
         self.view.show_message("Simulation", "Simulation completed!")
+        # Reset the GUI parameters
+        self.view.reset_gui()
 
 
 if __name__ == "__main__":

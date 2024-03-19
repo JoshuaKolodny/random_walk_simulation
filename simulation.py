@@ -106,6 +106,18 @@ class Simulation:
         """
         return self.__portal_gates
 
+    @property
+    def sim_obstacles_locations(self) -> set:
+        """
+        Returns the locations of obstacles in the simulation.
+
+        Returns
+        -------
+        set
+            a set of locations occupied by obstacles in the simulation
+        """
+        return self.__sim_obstacles_locations
+
     def add_walker(self, walker: Walker) -> bool:
         """
         Adds a walker to the simulation.
@@ -183,6 +195,47 @@ class Simulation:
         self.__sim_obstacles_locations.add(obstacle.bounds)
 
         return True
+
+    def remove_obstacle(self, obstacle_name: str) -> bool:
+        """
+        Removes an obstacle from the simulation.
+
+        Parameters
+        ----------
+        obstacle_name : str
+            the name of the obstacle to be removed
+
+        Returns
+        -------
+        bool
+            True if the obstacle was removed successfully, False otherwise
+        """
+        # Check if the obstacle is a barrier
+        if obstacle_name in self.__barriers:
+            # Get the barrier
+            barrier = self.__barriers[obstacle_name]
+
+            # Remove the barrier's bounds from self.__sim_obstacles_locations
+            self.__sim_obstacles_locations.remove(barrier.bounds)
+
+            # Remove the barrier from the simulation
+            del self.__barriers[obstacle_name]
+            return True
+
+        # Check if the obstacle is a portal gate
+        elif obstacle_name in self.__portal_gates:
+            # Get the portal gate
+            portal_gate = self.__portal_gates[obstacle_name]
+
+            # Remove the portal gate's bounds from self.__sim_obstacles_locations
+            self.__sim_obstacles_locations.remove(portal_gate.bounds)
+
+            # Remove the portal gate from the simulation
+            del self.__portal_gates[obstacle_name]
+            return True
+
+        # The obstacle was not found
+        return False
 
     def add_barrier(self, barrier_name: str, barrier: Barrier2D) -> bool:
         """
@@ -386,6 +439,14 @@ class Simulation:
             walker_info[PASSED_Y] = []
         self.__last_x_position = 0
         self.__passed_y_counter = 0
+
+    # def reset_all_parameters(self) -> None:
+    #     """
+    #     Resets the simulation entirely if finished running all the simulations
+    #     """
+    #     self.__barriers={}
+    #     self.__sim_obstacles_locations= set()
+    #     self.__portal_gates= {}
 
 # if __name__ == "__main__":
 #     simulation = Simulation()

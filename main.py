@@ -40,36 +40,22 @@ class SimulationRunner:
         self.simulation = Simulation()  # Initialize a new Simulation object
         self.statistics = Statistics()  # Initialize a new Statistics object
 
-    def run(self):
-        """
-        Runs the simulation.
-        """
-        # Parse command-line arguments
-        parser = argparse.ArgumentParser(description='Run a simulation.')
-        parser.add_argument('filename', type=str,
-                            help='The name of the JSON file containing the simulation parameters.')
-        parser.add_argument('stats_path', type=str,
-                            help='The path to save the statistics.')
-        args = parser.parse_args()  # Parse the command-line arguments
-
+    def setup_simulation(self, filename):
         # Load the simulation parameters from the JSON file
         try:
-            simulation_parameters = simulation_loader.load_from_json(args.filename)
+            simulation_parameters = simulation_loader.load_from_json(filename)
         except FileNotFoundError:
-            print(f"Error: The file {args.filename} does not exist.")
+            print(f"Error: The file {filename} does not exist.")
             return
         except json.JSONDecodeError:
-            print(f"Error: The file {args.filename} is not a valid JSON file.")
+            print(f"Error: The file {filename} is not a valid JSON file.")
             return
 
         # Check if the JSON file contains all the required parameters
         required_parameters = ['walkers', 'num_simulations', 'num_steps']
         if not all(param in simulation_parameters for param in required_parameters):
-            print(f"Error: The file {args.filename} does not contain all the required parameters.")
+            print(f"Error: The file {filename} does not contain all the required parameters.")
             return
-
-        num_simulations = simulation_parameters['num_simulations']  # Number of simulations to run
-        num_steps = simulation_parameters['num_steps']  # Number of steps in each simulation
 
         # Extract walkers and their parameters from simulation_parameters
         walkers = simulation_parameters['walkers']
@@ -121,6 +107,9 @@ class SimulationRunner:
                 print(f"Error: Failed to create a portal gate with parameters {portal_gate_params}. {e}")
                 continue
 
+        return simulation_parameters['num_simulations'], simulation_parameters['num_steps']
+
+    def run_simulation(self, num_simulations, num_steps, json_path='stats.json'):
         # Run the simulation for the specified number of steps and simulations
         for i in range(1, num_simulations + 1):
             self.simulation.simulate(num_steps)
@@ -143,9 +132,9 @@ class SimulationRunner:
         stats_exporter.add_data('escape_radius_10_stats', escape_radius_10_stats)
         stats_exporter.add_data('passed_y_stats', passed_y_stats)
         try:
-            stats_exporter.save_to_json(args.stats_path)  # Save the statistics to a JSON file
+            stats_exporter.save_to_json(json_path)  # Save the statistics to a JSON file
         except PermissionError:
-            print(f"Error: Cannot write to the file {args.stats_path}. Check your permissions.")
+            print(f"Error: Cannot write to the file {json_path}. Check your permissions.")
             return
         except FileNotFoundError:
             print(f"Error: The directory to save the statistics does not exist.")
@@ -159,7 +148,18 @@ class SimulationRunner:
         g.plot_escape_radius_10()
         g.plot_average_passed_y()
 
+        # Resets simulation runner parameters entirely
+        self.simulation= Simulation()
+        self.statistics=Statistics()
+
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Run the simulation.')
+    parser.add_argument('parameters_path', type=str, help='The path to the parameters JSON file.')
+    parser.add_argument('stats_path', type=str, help='The path where the statistics JSON file will be saved.')
+    args = parser.parse_args()
+
     runner = SimulationRunner()  # Initialize a new SimulationRunner object
-    runner.run()  # Run the simulation
+    num_simulations, num_steps = runner.setup_simulation(args.parameters_path)
+    runner.run_simulation(num_simulations, num_steps, args.stats_path)  # Run the simulation
+
