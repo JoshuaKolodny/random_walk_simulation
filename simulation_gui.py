@@ -517,6 +517,10 @@ class SimulationGUI:
         self.obstacle_dest_x.entry.delete(0, 'end')
         self.obstacle_dest_y.entry.delete(0, 'end')
 
+        # Reset BiasedWalker parameters
+        for entry in self.biased_walker_params.values():
+            entry.entry.delete(0, 'end')
+
         # Clear the walker table
         for row in self.walker_table.get_children():
             self.walker_table.delete(row)
@@ -612,6 +616,10 @@ class SimulationController:
             del self.walkers[walker_type]  # Remove the walker type from the dictionary
 
     def run_simulation(self, num_simulations, num_steps):
+        if not self.model.simulation.walkers:
+            self.view.show_error("Error", "There must be at least one walker!")
+            return
+
         self.model.run_simulation(num_simulations, num_steps)
         # Show a message box when the simulation is done
         self.view.show_message("Simulation", "Simulation completed!")
