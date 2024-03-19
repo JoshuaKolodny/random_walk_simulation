@@ -1,18 +1,21 @@
 import tkinter as tk
 from tkinter import messagebox, ttk
+
+from PIL import ImageTk, Image
+
 from main import *
 
 
 class GuiHelper:
-    @classmethod
-    def create_label_entry_pair(cls, frame, text, row):
+    @staticmethod
+    def create_label_entry_pair(frame, text, row):
         pair_frame = tk.Frame(frame)
         pair_frame.grid(row=row, column=0, padx=5, pady=5, sticky=tk.W + tk.E)
 
         label = tk.Label(pair_frame, text=text)
         label.grid(row=0, column=0, sticky=tk.E)
 
-        entry = tk.Entry(pair_frame)
+        entry = GuiHelper.create_custom_entry(pair_frame)
         entry.grid(row=0, column=1, sticky=tk.W)
 
         pair_frame.grid_columnconfigure(0, weight=1)  # Allow the label to expand
@@ -23,24 +26,22 @@ class GuiHelper:
 
         return pair_frame
 
+    @staticmethod
+    def create_custom_entry(parent, **kwargs):
+        # Create a style
+        style = ttk.Style()
 
-class SimulationGUI:
-    def __init__(self, root, controller):
-        self.root = root
-        self.controller = controller
-        self.root.title("Random Walk Simulation")
-        self.root.geometry("1200x600")  # Set the size of the window to 1200x600
-        self.root.resizable(False, False)  # Prevent the window from being resizable
+        # Configure the style for Entry widget
+        style.configure('Custom.TEntry', foreground='#333333', background='#f0f0f0', bordercolor='gray',
+                        fieldbackground='#f0f0f0', font=('Arial', 12))
 
-        # Configure the grid to expand to fill the available space
-        self.root.grid_columnconfigure(0, weight=1)
-        self.root.grid_columnconfigure(1, weight=1)
-        self.root.grid_columnconfigure(2, weight=1)
-        self.root.grid_rowconfigure(0, weight=1)
+        # Create an entry with the custom style
+        entry = ttk.Entry(parent, style="Custom.TEntry", **kwargs)
 
-        self._create_gui_components()
+        return entry
 
-    def create_styled_button(self, parent, **kwargs):
+    @staticmethod
+    def create_styled_button(parent, **kwargs):
         # Define the button style
         button_hover_color = 'gray'
         regular_color = 'lightgray'
@@ -56,25 +57,68 @@ class SimulationGUI:
         # Create the button with the desired style
         button = tk.Button(parent, **button_style, **kwargs)
 
+        # Define the hover function
+        def on_hover(event):
+            button['background'] = button_hover_color
+
+        # Define the leave function
+        def on_leave(event):
+            button['background'] = regular_color
+
+        # Bind the hover and leave functions to the button
+        button.bind("<Enter>", on_hover)
+        button.bind("<Leave>", on_leave)
+
         return button
+
+
+class SimulationGUI:
+    def __init__(self, root, controller):
+        self.root = root
+        self.controller = controller
+        self.root.title("Random Walk Simulation")
+        self.root.geometry("1200x600")  # Set the size of the window to 1200x600
+        self.root.resizable(False, False)  # Prevent the window from being resizable
+
+        # # Load the background image
+        # image = Image.open('background_app_image.jpeg')
+        # self.background_image = ImageTk.PhotoImage(image)
+        #
+        # # Create a label with the background image and place it at the bottom of the widget stack
+        # self.background_label = tk.Label(self.root, image=self.background_image)
+        # self.background_label.place(x=0, y=0, relwidth=1, relheight=1,
+        #                             anchor="nw")  # "nw" anchor sets the label to the top-left corner
+
+        self.root.grid_columnconfigure(0, weight=3)
+        self.root.grid_columnconfigure(1, weight=1)
+        self.root.grid_columnconfigure(2, weight=3)
+
+        self._create_gui_components()
 
     def _create_gui_components(self):
         self._create_walker_selection()
         self._create_walker_table()
-        self._create_simulation_parameters()
-        self._create_simulation_buttons()
         self._create_obstacle_creation()
         self._create_obstacle_table()
+        self._create_simulation_parameters()
+        self._create_simulation_buttons()
 
     def _create_obstacle_creation(self):
         self.obstacle_frame = tk.Frame(self.root)
-        self.obstacle_frame.grid(row=0, column=2, padx=15, pady=5, sticky=tk.E)  # Increase padx
+        self.obstacle_frame.grid(row=0, column=2, padx=(5, 100), pady=5, sticky=tk.N + tk.S + tk.E + tk.W)
+
+        # Create a frame for the title
+        self.title_frame = tk.Frame(self.obstacle_frame)
+        self.title_frame.grid(row=0, column=0, padx=15, pady=5, sticky=tk.W)
+
+        self.obstacle_title = tk.Label(self.title_frame, text="Step 2:", font=("Arial", 20))
+        self.obstacle_title.grid(row=0, column=0, padx=15, pady=5, sticky=tk.W)
 
         self.obstacle_type_var = tk.StringVar()  # Create a StringVar
         self.obstacle_type_var.trace('w', self.update_obstacle_parameters)  # Use trace on the StringVar
 
         self.obstacle_type_frame = tk.Frame(self.obstacle_frame)
-        self.obstacle_type_frame.grid(row=0, column=0, columnspan=2, padx=5, pady=2)  # Decrease pady to reduce the gap
+        self.obstacle_type_frame.grid(row=1, column=0, columnspan=2, padx=5, pady=2)  # Decrease pady to reduce the gap
 
         tk.Label(self.obstacle_type_frame, text="Select Obstacle Type:").grid(row=0, column=0, padx=5, pady=5)
         self.obstacle_type = ttk.Combobox(self.obstacle_type_frame,
@@ -82,17 +126,17 @@ class SimulationGUI:
                                           textvariable=self.obstacle_type_var)
         self.obstacle_type.grid(row=0, column=1, padx=5, pady=5)
 
-        self.obstacle_name = GuiHelper.create_label_entry_pair(self.obstacle_frame, "Obstacle name:", 1)
-        self.obstacle_x = GuiHelper.create_label_entry_pair(self.obstacle_frame, "X:", 2)
-        self.obstacle_y = GuiHelper.create_label_entry_pair(self.obstacle_frame, "Y:", 3)
-        self.obstacle_width = GuiHelper.create_label_entry_pair(self.obstacle_frame, "Width:", 4)
-        self.obstacle_height = GuiHelper.create_label_entry_pair(self.obstacle_frame, "Height:", 5)
+        self.obstacle_name = GuiHelper.create_label_entry_pair(self.obstacle_frame, "Obstacle name:", 2)
+        self.obstacle_x = GuiHelper.create_label_entry_pair(self.obstacle_frame, "X:", 3)
+        self.obstacle_y = GuiHelper.create_label_entry_pair(self.obstacle_frame, "Y:", 4)
+        self.obstacle_width = GuiHelper.create_label_entry_pair(self.obstacle_frame, "Width:", 5)
+        self.obstacle_height = GuiHelper.create_label_entry_pair(self.obstacle_frame, "Height:", 6)
 
-        self.obstacle_dest_x = GuiHelper.create_label_entry_pair(self.obstacle_frame, "Dest X:", 6)
-        self.obstacle_dest_y = GuiHelper.create_label_entry_pair(self.obstacle_frame, "Dest Y:", 7)
+        self.obstacle_dest_x = GuiHelper.create_label_entry_pair(self.obstacle_frame, "Dest X:", 7)
+        self.obstacle_dest_y = GuiHelper.create_label_entry_pair(self.obstacle_frame, "Dest Y:", 8)
 
-        self.add_obstacle_button = self.create_styled_button(self.obstacle_frame, text="Add Obstacle", command=self.add_obstacle)
-        self.add_obstacle_button.grid(row=8, column=0, columnspan=2)
+        self.add_obstacle_button = GuiHelper.create_styled_button(self.obstacle_frame, text="Add Obstacle", command=self.add_obstacle)
+        self.add_obstacle_button.grid(row=9, column=0, columnspan=2)
 
         # Set the default value for the obstacle type combobox
         self.obstacle_type_var.set('Barrier')
@@ -184,14 +228,14 @@ class SimulationGUI:
         self.obstacle_table = ttk.Treeview(self.obstacle_frame,
                                            columns=("Obstacle Name", "X", "Y", "Width", "Height", "Dest X", "Dest Y"),
                                            show="headings", height=5)
-        self.obstacle_table.grid(row=9, column=0, padx=5, pady=5, sticky=tk.W + tk.E + tk.N + tk.S)
+        self.obstacle_table.grid(row=10, column=0, padx=5, pady=5, sticky=tk.W + tk.E + tk.N + tk.S)
         self.obstacle_table.column("Obstacle Name", width=100)
-        self.obstacle_table.column("X", width=50)
-        self.obstacle_table.column("Y", width=50)
+        self.obstacle_table.column("X", width=25)
+        self.obstacle_table.column("Y", width=25)
         self.obstacle_table.column("Width", width=50)
         self.obstacle_table.column("Height", width=50)
-        self.obstacle_table.column("Dest X", width=50)
-        self.obstacle_table.column("Dest Y", width=50)
+        self.obstacle_table.column("Dest X", width=40)
+        self.obstacle_table.column("Dest Y", width=40)
 
         self.obstacle_table.heading("Obstacle Name", text="Obstacle Name")
         self.obstacle_table.heading("X", text="X")
@@ -203,25 +247,29 @@ class SimulationGUI:
 
         # Create a new frame for the button
         self.obstacle_button_frame = tk.Frame(self.obstacle_frame)
-        self.obstacle_button_frame.grid(row=10, column=0, padx=5, pady=5)  # Center the frame
+        self.obstacle_button_frame.grid(row=11, column=0, padx=5, pady=5)  # Center the frame
 
-        self.remove_obstacle_button = self.create_styled_button(self.obstacle_button_frame, text="Remove Obstacle",
+        self.remove_obstacle_button = GuiHelper.create_styled_button(self.obstacle_button_frame, text="Remove Obstacle",
                                                                 command=self.remove_obstacle)
         self.remove_obstacle_button.grid(row=0, column=0, padx=5, pady=5)  # Add spacing
 
     def _create_walker_selection(self):
         self.walker_frame = tk.Frame(self.root)
-        self.walker_frame.grid(row=0, column=0, padx=15, pady=5, sticky=tk.W)  # Increase padx
+        self.walker_frame.grid(row=0, column=0, padx=(100, 5), pady=5, sticky=tk.N + tk.S + tk.E + tk.W)
 
-        # Configure the grid to expand to fill the available space
-        self.walker_frame.grid_columnconfigure(0, weight=1)
-        self.walker_frame.grid_rowconfigure(0, weight=1)
+        # Create a frame for the title
+        self.title_frame = tk.Frame(self.walker_frame)
+        self.title_frame.grid(row=0, column=0, padx=15, pady=5, sticky=tk.W)
 
+        self.walker_title = tk.Label(self.title_frame, text="Step 1:", font=("Arial", 20))
+        self.walker_title.grid(row=0, column=0, padx=15, pady=5, sticky=tk.W)
+
+        # Rest of the content
         self.walker_type_var = tk.StringVar()  # Create a StringVar
         self.walker_type_var.trace('w', self.update_walker_parameters)  # Use trace on the StringVar
 
         self.walker_type_frame = tk.Frame(self.walker_frame)
-        self.walker_type_frame.grid(row=0, column=0, columnspan=2, padx=5, pady=2)  # Decrease pady to reduce the gap
+        self.walker_type_frame.grid(row=1, column=0, padx=5, pady=2, sticky=tk.W)
 
         tk.Label(self.walker_type_frame, text="Select Walker Type:").grid(row=0, column=0, padx=5, pady=5)
         self.walker_type = ttk.Combobox(self.walker_type_frame,
@@ -232,36 +280,36 @@ class SimulationGUI:
 
         # BiasedWalker parameters
         self.biased_walker_frame = tk.Frame(self.walker_frame)
-        self.biased_walker_frame.grid(row=1, column=0, padx=5, pady=2,
-                                      sticky=tk.W + tk.E + tk.N + tk.S)  # Decrease pady to reduce the gap
+        self.biased_walker_frame.grid(row=2, column=0, padx=5, pady=2, sticky=tk.W)
 
-        # BiasedWalker parameters
-        self.biased_walker_frame = tk.Frame(self.walker_frame)
-        self.biased_walker_frame.pack()
+        # Configure the grid to expand to fill the available space
+        self.biased_walker_frame.grid_columnconfigure(0, weight=1)
+        self.biased_walker_frame.grid_rowconfigure(0, weight=1)
 
         # Create label-entry pairs for each parameter
         self.biased_walker_params = {
-            'up_prob': GuiHelper.create_label_entry_pair(self.biased_walker_frame, "Up Probability:"),
-            'down_prob': GuiHelper.create_label_entry_pair(self.biased_walker_frame, "Down Probability:"),
-            'left_prob': GuiHelper.create_label_entry_pair(self.biased_walker_frame, "Left Probability:"),
-            'right_prob': GuiHelper.create_label_entry_pair(self.biased_walker_frame, "Right Probability:"),
-            'to_origin_prob': GuiHelper.create_label_entry_pair(self.biased_walker_frame, "To Origin Probability:")
+            'up_prob': GuiHelper.create_label_entry_pair(self.biased_walker_frame, "Up Probability:", 0),
+            'down_prob': GuiHelper.create_label_entry_pair(self.biased_walker_frame, "Down Probability:", 1),
+            'left_prob': GuiHelper.create_label_entry_pair(self.biased_walker_frame, "Left Probability:", 2),
+            'right_prob': GuiHelper.create_label_entry_pair(self.biased_walker_frame, "Right Probability:", 3),
+            'to_origin_prob': GuiHelper.create_label_entry_pair(self.biased_walker_frame, "To Origin Probability:", 4)
         }
 
         # Create a new frame for the walker count
         self.walker_count_frame = tk.Frame(self.walker_frame)
-        self.walker_count_frame.grid(row=4, column=0, columnspan=2)  # Center the frame
+        self.walker_count_frame.grid(row=3, column=0, columnspan=2)  # Center the frame
 
         tk.Label(self.walker_count_frame, text="Amount of this walker to add:").grid(row=0, column=0, padx=5, pady=5)
-        vcmd = (self.root.register(self.validate_walker_count), '%P')
-        self.walker_count = tk.Entry(self.walker_count_frame, validate='key', validatecommand=vcmd)
+        # vcmd = (self.root.register(self.validate_walker_count), '%P')
+        self.walker_count = GuiHelper.create_custom_entry(self.walker_count_frame, validate='key')
         self.walker_count.grid(row=0, column=1, padx=5, pady=5)
 
-        self.add_walker_button = self.create_styled_button(self.walker_frame, text="Add Walker", command=self.add_walker)
-        self.add_walker_button.grid(row=5, column=0, columnspan=2, padx=5, pady=5)
+        self.add_walker_button = GuiHelper.create_styled_button(self.walker_frame, text="Add Walker",
+                                                                command=self.add_walker)
+        self.add_walker_button.grid(row=4, column=0, columnspan=2, padx=5, pady=5)
 
         # Set the default value for the walker type combobox
-        self.walker_type_var.set('OneUnitRandomWalker')
+        self.walker_type_var.set('BiasedWalker')
         # Update the walker parameters
         self.update_walker_parameters()
 
@@ -270,24 +318,26 @@ class SimulationGUI:
 
         # Hide all parameter pairs
         for pair in self.biased_walker_params.values():
-            pair.pack_forget()
+            pair.grid_remove()
 
         if walker_type == 'BiasedWalker':
             # Show parameter pairs for BiasedWalker
             for pair in self.biased_walker_params.values():
-                pair.pack()
+                pair.grid()
 
     def _create_walker_table(self):
         self.walker_table = ttk.Treeview(self.walker_frame, columns=('Type', 'Count'), show='headings', height=5)
+        self.walker_table.column('Type', width=100)
+        self.walker_table.column('Count', width=100)
         self.walker_table.heading('Type', text='Walker Type')
         self.walker_table.heading('Count', text='Walker Count')
-        self.walker_table.grid(row=6, column=0, columnspan=2, padx=5, pady=5)
+        self.walker_table.grid(row=7, column=0, padx=5, pady=5)
 
         # Create a new frame for the button and the label
         self.button_label_frame = tk.Frame(self.walker_frame)
-        self.button_label_frame.grid(row=7, column=0, columnspan=2)  # Center the frame
+        self.button_label_frame.grid(row=8, column=0, columnspan=2)  # Center the frame
 
-        self.remove_walker_button = self.create_styled_button(self.button_label_frame, text="Remove Walker", command=self.remove_walker)
+        self.remove_walker_button = GuiHelper.create_styled_button(self.button_label_frame, text="Remove Walker", command=self.remove_walker)
         self.remove_walker_button.grid(row=0, column=0, padx=5, pady=5)  # Add spacing
 
         # Add the walker count label to the new frame
@@ -296,17 +346,24 @@ class SimulationGUI:
 
     def _create_simulation_parameters(self):
         self.simulation_frame = tk.Frame(self.root)
-        self.simulation_frame.grid(row=1, column=1, padx=10, pady=20, sticky=tk.N + tk.S + tk.E + tk.W)
+        self.simulation_frame.grid(row=0, column=1, padx=10, pady=(20, 0), sticky=tk.S)
 
-        tk.Label(self.simulation_frame, text="Number of Simulations:").grid(row=0, padx=5, pady=5)
-        self.num_simulations = tk.Entry(self.simulation_frame)
+        # Create a frame for the title
+        self.title_frame = tk.Frame(self.simulation_frame)
+        self.title_frame.grid(row=0, column=0, padx=15, pady=5, sticky=tk.W)
+
+        self.simulations_title = tk.Label(self.title_frame, text="Step 3:", font=("Arial", 20))
+        self.simulations_title.grid(row=0, column=0, padx=15, pady=5, sticky=tk.W)
+
+        tk.Label(self.simulation_frame, text="Number of Simulations:").grid(row=1, padx=5, pady=5)
+        self.num_simulations = GuiHelper.create_custom_entry(self.simulation_frame)
         self.num_simulations.insert(0, '20')  # Insert the default value
-        self.num_simulations.grid(row=0, column=1, padx=5, pady=5)
+        self.num_simulations.grid(row=1, column=1, padx=5, pady=5)
 
-        tk.Label(self.simulation_frame, text="Number of Steps:").grid(row=1, padx=5, pady=5)
-        self.num_steps = tk.Entry(self.simulation_frame)
+        tk.Label(self.simulation_frame, text="Number of Steps:").grid(row=2, padx=5, pady=5)
+        self.num_steps = GuiHelper.create_custom_entry(self.simulation_frame)
         self.num_steps.insert(0, '500')  # Insert the default value
-        self.num_steps.grid(row=1, column=1, padx=5, pady=5)
+        self.num_steps.grid(row=2, column=1, padx=5, pady=5)
 
     def validate_positive_integer(self, input_value):
         if input_value == '':
@@ -320,16 +377,16 @@ class SimulationGUI:
         except ValueError:
             return False
 
-    def validate_walker_count(self, new_value):
-        if not self.validate_positive_integer(new_value):
-            self.walker_count.config(highlightbackground="red")
-        else:
-            self.walker_count.config(highlightbackground="white")
-        return True  # Always return True to accept the input
+    # def validate_walker_count(self, new_value):
+    #     if not self.validate_positive_integer(new_value):
+    #         self.walker_count.config(highlightbackground="red")
+    #     else:
+    #         self.walker_count.config(highlightbackground="white")
+    #     return True  # Always return True to accept the input
 
     def _create_simulation_buttons(self):
-        self.run_button = self.create_styled_button(self.simulation_frame, text="Run Simulation", command=self.run_simulation)
-        self.run_button.grid(row=2, column=0, columnspan=2, padx=5, pady=5)
+        self.run_button = GuiHelper.create_styled_button(self.simulation_frame, text="Run Simulation", command=self.run_simulation)
+        self.run_button.grid(row=3, column=0, columnspan=2, padx=5, pady=5)
 
     def add_walker(self):
         walker_type = self.walker_type.get()
@@ -442,8 +499,8 @@ class SimulationGUI:
         self.controller.run_simulation(num_simulations, num_steps)
 
     def reset_gui(self):
-        # Reset walker type to 'OneUnitRandomWalker'
-        self.walker_type_var.set('OneUnitRandomWalker')
+        # Reset walker type to 'BiasedWalker'
+        self.walker_type_var.set('BiasedWalker')
 
         # Reset obstacle type to 'Barrier'
         self.obstacle_type_var.set('Barrier')
