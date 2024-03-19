@@ -54,7 +54,7 @@ class Simulation:
         self.__walkers = {}
         self.__barriers = {}
         self.__portal_gates = {}
-        self.__sim_obstacles_locations = set()
+        self.__sim_obstacles_locations = {}
         self.__last_x_position = 0
         self.__passed_y_counter = 0
 
@@ -162,37 +162,40 @@ class Simulation:
                 removed = True
         return removed
 
-    def __add_obstacle(self, obstacle_name: str, obstacle: Obstacle, obstacle_dict: Dict[str, Obstacle]) -> bool:
+    def __add_obstacle(self, obstacle_name: str, obstacle: Obstacle, obstacle_dict: Dict[str, Obstacle]) -> Union[bool, str]:
         """
         Adds an obstacle to the simulation.
 
         Parameters
         ----------
-        obstacle_name : str- the name of the obstacle
-        obstacle : Obstacle-the obstacle to be added to the simulation
-        obstacle_dict : dict-the dictionary to which the obstacle will be added
+        obstacle_name : str
+            The name of the obstacle.
+        obstacle : Obstacle
+            The obstacle to be added to the simulation.
+        obstacle_dict : dict
+            The dictionary to which the obstacle will be added.
 
         Returns
         -------
-        bool
-            True if the obstacle was added successfully, False otherwise
+        bool or str
+            True if the obstacle was added successfully, otherwise a string with an error message.
         """
         # Check if the obstacle intersects with any existing obstacles or portal gates
         for existing_bounds in self.__sim_obstacles_locations:
             if obstacle.bounds.intersects_with(existing_bounds):
-                return False
+                return "Obstacle intersects with an existing obstacle."
 
         # Check if the obstacle intersects with the origin location
         if obstacle.bounds.contains_point(self.__origin[X], self.__origin[Y]):
-            return False
+            return "Obstacle intersects with the origin location."
 
-        # If the name is already used, append a unique ID
+        # If the name is already used, don't allow to be added
         if obstacle_name in obstacle_dict:
-            obstacle_name += str(len(obstacle_dict))
+            return f"Obstacle name '{obstacle_name}' is already used."
 
-        # Add the obstacle to the dictionary and its bounds to the locations set
+        # Add the obstacle to the dictionary and its bounds to the locations dictionary
         obstacle_dict[obstacle_name] = obstacle
-        self.__sim_obstacles_locations.add(obstacle.bounds)
+        self.__sim_obstacles_locations[obstacle.bounds] = obstacle_name
 
         return True
 
@@ -214,10 +217,10 @@ class Simulation:
         if obstacle_name in self.__barriers:
             # Get the barrier
             barrier = self.__barriers[obstacle_name]
-
-            # Remove the barrier's bounds from self.__sim_obstacles_locations
-            self.__sim_obstacles_locations.remove(barrier.bounds)
-
+            # Check if the barrier's bounds are in self.__sim_obstacles_locations
+            if barrier.bounds in self.__sim_obstacles_locations:
+                # If they are, remove the barrier's bounds from self.__sim_obstacles_locations
+                del self.__sim_obstacles_locations[barrier.bounds]
             # Remove the barrier from the simulation
             del self.__barriers[obstacle_name]
             return True
@@ -226,10 +229,10 @@ class Simulation:
         elif obstacle_name in self.__portal_gates:
             # Get the portal gate
             portal_gate = self.__portal_gates[obstacle_name]
-
-            # Remove the portal gate's bounds from self.__sim_obstacles_locations
-            self.__sim_obstacles_locations.remove(portal_gate.bounds)
-
+            # Check if the portal gate's bounds are in self.__sim_obstacles_locations
+            if portal_gate.bounds in self.__sim_obstacles_locations:
+                # If they are, remove the portal gate's bounds from self.__sim_obstacles_locations
+                del self.__sim_obstacles_locations[portal_gate.bounds]
             # Remove the portal gate from the simulation
             del self.__portal_gates[obstacle_name]
             return True

@@ -59,6 +59,14 @@ class BoundingBox:
         """
         return self.min_x, self.min_y, self.max_x, self.max_y
 
+    def __eq__(self, other):
+        if isinstance(other, BoundingBox):
+            return self.min_x == other.min_x and self.min_y == other.min_y and self.max_x == other.max_x and self.max_y == other.max_y
+        return False
+
+    def __hash__(self):
+        return hash((self.min_x, self.min_y, self.max_x, self.max_y))
+
     def intersects_with(self, other: 'BoundingBox') -> bool:
         """
         Checks if the bounding box intersects with another bounding box.
