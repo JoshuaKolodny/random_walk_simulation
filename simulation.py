@@ -240,7 +240,7 @@ class Simulation:
         # The obstacle was not found
         return False
 
-    def add_barrier(self, barrier_name: str, barrier: Barrier2D) -> bool:
+    def add_barrier(self, barrier_name: str, barrier: Barrier2D) -> Union[bool, str]:
         """
         Adds a barrier to the simulation.
 
@@ -256,7 +256,7 @@ class Simulation:
         """
         return self.__add_obstacle(barrier_name, barrier, self.__barriers)
 
-    def add_portal_gate(self, portal_gate_name: str, portal_gate: PortalGate) -> bool:
+    def add_portal_gate(self, portal_gate_name: str, portal_gate: PortalGate) -> Union[bool, str]:
         """
         Adds a portal gate to the simulation.
 

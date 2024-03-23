@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-import seaborn as sns
+import seaborn as sns  # type: ignore
 from my_statistics import Statistics
 import pandas as pd
 import textwrap
@@ -69,6 +69,10 @@ class Graph:
         plt.title('Escape Radius 10')
         plt.ylabel('Amount of Steps')
         plt.xlabel('Walker Names')
+        ax = plt.gca()
+        ax.set_xticks(range(len(df['walker_name'])))
+        ax.set_xticklabels(['\n'.join(textwrap.wrap(name, 10)) for name in df['walker_name']])
+
         plt.tight_layout()
         plt.show()
 
@@ -92,6 +96,9 @@ class Graph:
         plt.figure(figsize=(10, 6))
         sns.barplot(x='Walker Name', y='Average Lead Count', data=df)
         plt.title('Average Lead Count Per Simulation')
-        plt.xlabel('Walker Name')
         plt.ylabel('Average Lead Count')
+        ax = plt.gca()
+        ax.set_xticks(range(len(df['Walker Name'])))
+        ax.set_xticklabels(['\n'.join(textwrap.wrap(name, 10)) for name in df['Walker Name']])
+        plt.xlabel('Walker Name')
         plt.show()

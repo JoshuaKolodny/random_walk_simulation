@@ -256,7 +256,7 @@ class Statistics:
         walker_total_lead_counts = {walker_name: 0 for walker_name in self.__simulations.keys()}
 
         # Initialize a dictionary to store the distances for each walker after each step in each simulation
-        walker_distances = {walker_name: [] for walker_name in self.__simulations.keys()}
+        walker_distances: Dict[str, List] = {walker_name: [] for walker_name in self.__simulations.keys()}
 
         # Iterate over all walkers and their simulations
         for walker_name, simulations in self.__simulations.items():

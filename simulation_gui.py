@@ -418,11 +418,19 @@ class SimulationGUI:
 
         if walker_type == 'BiasedWalker':
             # Extract probabilities from GUI inputs
-            up_prob = float(self.biased_walker_params['up_prob'].entry.get())
-            down_prob = float(self.biased_walker_params['down_prob'].entry.get())
-            left_prob = float(self.biased_walker_params['left_prob'].entry.get())
-            right_prob = float(self.biased_walker_params['right_prob'].entry.get())
-            to_origin_prob = float(self.biased_walker_params['to_origin_prob'].entry.get())
+            try:
+                up_prob = float(self.biased_walker_params['up_prob'].entry.get())
+                down_prob = float(self.biased_walker_params['down_prob'].entry.get())
+                left_prob = float(self.biased_walker_params['left_prob'].entry.get())
+                right_prob = float(self.biased_walker_params['right_prob'].entry.get())
+                to_origin_prob = float(self.biased_walker_params['to_origin_prob'].entry.get())
+
+                # Check if probabilities are positive
+                if up_prob < 0 or down_prob < 0 or left_prob < 0 or right_prob < 0 or to_origin_prob < 0:
+                    raise ValueError("Probabilities must be positive")
+            except ValueError:
+                self.show_error("Error", "Probabilities must be positive float numbers!")
+                return
 
             # Pack additional arguments into a dictionary
             kwargs = {'up_prob': up_prob, 'down_prob': down_prob, 'left_prob': left_prob,
