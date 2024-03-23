@@ -1,6 +1,7 @@
 from typing import Dict, List, Optional
 from simulation import Simulation
 import numpy as np
+
 WALKER = 0
 WALKER_LOCATIONS = 1
 RADIUS_10 = 2
@@ -43,8 +44,18 @@ class Statistics:
         Constructs all the necessary attributes for the Statistics object.
         """
         self.__total_simulations = 0
+        self.__num_of_steps = 0
         self.__simulations: Dict = {}
         self.__average_locations: Dict[str, np.ndarray] = {}
+
+
+    @property
+    def num_of_steps(self):
+        return self.__num_of_steps
+
+    @num_of_steps.setter
+    def num_of_steps(self, num_of_steps):
+        self.__num_of_steps = num_of_steps
 
     @property
     def get_total_simulations(self):
@@ -232,6 +243,46 @@ class Statistics:
 
         return walker_passed_y_averages
 
+    def calculate_average_leads(self) -> Dict[str, float]:
+        """
+        Calculates the average number of times each walker led the race in all simulations.
+
+        Returns
+        -------
+        dict
+            a dictionary where the keys are walker names and the values are the average number of times they led the race.
+        """
+        # Initialize a dictionary to store the total lead counts for each walker
+        walker_total_lead_counts = {walker_name: 0 for walker_name in self.__simulations.keys()}
+
+        # Initialize a dictionary to store the distances for each walker after each step in each simulation
+        walker_distances = {walker_name: [] for walker_name in self.__simulations.keys()}
+
+        # Iterate over all walkers and their simulations
+        for walker_name, simulations in self.__simulations.items():
+            # For each simulation, calculate the distance from the origin after each step
+            for simulation_data in simulations.values():
+                distances = [np.linalg.norm(location) for location in simulation_data['locations']]
+                walker_distances[walker_name].append(distances)
+
+        # Calculate the total number of steps across all simulations
+        total_steps = self.__num_of_steps * self.__total_simulations
+
+        # Iterate over each step of each simulation
+        for step in range(total_steps):
+            # For each step, compare the distances between walkers to determine who is leading
+            leading_walker = max(walker_distances,
+                                 key=lambda walker: sum(
+                                     distances[step % self.__num_of_steps] for distances in walker_distances[walker]))
+            # Increment the total lead count for the leading walker
+            walker_total_lead_counts[leading_walker] += 1
+
+        # Calculate the average lead count for each walker
+        walker_average_leads = {walker_name: lead_count / self.__total_simulations for walker_name, lead_count in
+                                walker_total_lead_counts.items()}
+
+        return walker_average_leads
+
 #
 # if __name__ == '__main__':
 #     simulation1 = Simulation()
@@ -280,7 +331,3 @@ class Statistics:
 #
 #     g = Graph(statistics)
 #     g.plot_average_distance_from_origin()
-
-
-
-

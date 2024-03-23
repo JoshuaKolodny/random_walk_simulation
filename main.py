@@ -1,13 +1,14 @@
 import json
 import simulation_loader
 from Walker.discrete_step_walker import DiscreteStepWalker
+from Walker.no_repeat_walker import NoRepeatWalker
 from Walker.one_unit_random_walker import OneUnitRandomWalker
 from Walker.biased_walker import BiasedWalker
 from Walker.random_step_walker import RandomStepWalker
 from obstacles_and_barriers import Barrier2D
 from portal_gate import *
 from simulation import Simulation
-from statistics import Statistics
+from my_statistics import Statistics
 from Graph import Graph
 import argparse
 
@@ -78,6 +79,8 @@ class SimulationRunner:
                             walker = DiscreteStepWalker()
                         elif walker_type == 'RandomStepWalker':
                             walker = RandomStepWalker()
+                        elif walker_type == 'NoRepeatWalker':
+                            walker = NoRepeatWalker()
                         else:
                             continue
                         self.simulation.add_walker(walker)  # Add the walker to the simulation
@@ -110,6 +113,7 @@ class SimulationRunner:
         return simulation_parameters['num_simulations'], simulation_parameters['num_steps']
 
     def run_simulation(self, num_simulations, num_steps, json_path='stats.json'):
+        self.statistics.num_of_steps = num_steps
         # Run the simulation for the specified number of steps and simulations
         for i in range(1, num_simulations + 1):
             self.simulation.simulate(num_steps)
@@ -123,6 +127,7 @@ class SimulationRunner:
         distances_from_axis_y = self.statistics.calculate_distances_from_axis(axis='X')
         escape_radius_10_stats = self.statistics.calculate_escape_radius_10()
         passed_y_stats = self.statistics.calculate_average_passed_y()
+        average_lead_count = self.statistics.calculate_average_leads()
 
         # Save statistics to JSON file
         stats_exporter = StatisticsExporter()  # Initialize a new StatisticsExporter object
@@ -131,6 +136,7 @@ class SimulationRunner:
         stats_exporter.add_data('distances_from_axis_y', distances_from_axis_y)
         stats_exporter.add_data('escape_radius_10_stats', escape_radius_10_stats)
         stats_exporter.add_data('passed_y_stats', passed_y_stats)
+        stats_exporter.add_data('average lead count', average_lead_count)
         try:
             stats_exporter.save_to_json(json_path)  # Save the statistics to a JSON file
         except PermissionError:
@@ -147,10 +153,11 @@ class SimulationRunner:
         g.plot_distances_from_axis(axis='Y')
         g.plot_escape_radius_10()
         g.plot_average_passed_y()
+        g.plot_lead_counts()
 
         # Resets simulation runner parameters entirely
-        self.simulation= Simulation()
-        self.statistics=Statistics()
+        self.simulation = Simulation()
+        self.statistics =Statistics()
 
 
 if __name__ == '__main__':

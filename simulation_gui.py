@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox, ttk
 
-from PIL import ImageTk, Image
+from PIL import ImageTk, Image, ImageEnhance
 
 from main import *
 
@@ -13,10 +13,10 @@ class GuiHelper:
         pair_frame.grid(row=row, column=0, padx=5, pady=5, sticky=tk.W + tk.E)
 
         label = tk.Label(pair_frame, text=text)
-        label.grid(row=0, column=0, sticky=tk.E)
+        label.grid(row=0, column=0, sticky=tk.W)
 
         entry = GuiHelper.create_custom_entry(pair_frame)
-        entry.grid(row=0, column=1, sticky=tk.W)
+        entry.grid(row=0, column=1, sticky=tk.E)
 
         pair_frame.grid_columnconfigure(0, weight=1)  # Allow the label to expand
         pair_frame.grid_columnconfigure(1, weight=1)  # Allow the entry to expand
@@ -80,14 +80,18 @@ class SimulationGUI:
         self.root.geometry("1200x600")  # Set the size of the window to 1200x600
         self.root.resizable(False, False)  # Prevent the window from being resizable
 
-        # # Load the background image
-        # image = Image.open('background_app_image.jpeg')
-        # self.background_image = ImageTk.PhotoImage(image)
-        #
-        # # Create a label with the background image and place it at the bottom of the widget stack
-        # self.background_label = tk.Label(self.root, image=self.background_image)
-        # self.background_label.place(x=0, y=0, relwidth=1, relheight=1,
-        #                             anchor="nw")  # "nw" anchor sets the label to the top-left corner
+        # Load the background image
+        bg_image = Image.open('background_app_image.jpg')
+        bg_image = bg_image.resize((1200, 600))  #
+        # Add opacity to the image by reducing its brightness
+        enhancer = ImageEnhance.Brightness(bg_image)
+        bg_image = enhancer.enhance(0.8)  # Reduce brightness to 50% to simulate 50% opacity
+        self.background_image = ImageTk.PhotoImage(bg_image)
+
+        # Create a label with the background image and place it at the bottom of the widget stack
+        self.background_label = tk.Label(self.root, image=self.background_image)
+        self.background_label.place(x=0, y=0, relwidth=1, relheight=1,
+                                    anchor="nw")  # "nw" anchor sets the label to the top-left corner
 
         self.root.grid_columnconfigure(0, weight=3)
         self.root.grid_columnconfigure(1, weight=1)
@@ -274,7 +278,7 @@ class SimulationGUI:
         tk.Label(self.walker_type_frame, text="Select Walker Type:").grid(row=0, column=0, padx=5, pady=5)
         self.walker_type = ttk.Combobox(self.walker_type_frame,
                                         values=['BiasedWalker', 'OneUnitRandomWalker', 'DiscreteStepWalker',
-                                                'RandomStepWalker'], state='readonly',
+                                                'RandomStepWalker','NoRepeatWalker'], state='readonly',
                                         textvariable=self.walker_type_var)
         self.walker_type.grid(row=0, column=1, padx=5, pady=5)
 
@@ -413,36 +417,18 @@ class SimulationGUI:
             return
 
         if walker_type == 'BiasedWalker':
-            up_prob = self.biased_walker_params['up_prob'].entry.get()
-            down_prob = self.biased_walker_params['down_prob'].entry.get()
-            left_prob = self.biased_walker_params['left_prob'].entry.get()
-            right_prob = self.biased_walker_params['right_prob'].entry.get()
-            to_origin_prob = self.biased_walker_params['to_origin_prob'].entry.get()
+            # Extract probabilities from GUI inputs
+            up_prob = float(self.biased_walker_params['up_prob'].entry.get())
+            down_prob = float(self.biased_walker_params['down_prob'].entry.get())
+            left_prob = float(self.biased_walker_params['left_prob'].entry.get())
+            right_prob = float(self.biased_walker_params['right_prob'].entry.get())
+            to_origin_prob = float(self.biased_walker_params['to_origin_prob'].entry.get())
 
-            if not up_prob or not down_prob or not left_prob or not right_prob or not to_origin_prob:
-                self.show_error("Error", "Please enter all probabilities for the Biased Walker!")
-                return
+            # Pack additional arguments into a dictionary
+            kwargs = {'up_prob': up_prob, 'down_prob': down_prob, 'left_prob': left_prob,
+                      'right_prob': right_prob, 'to_origin_prob': to_origin_prob}
 
-            try:
-                up_prob = float(up_prob)
-                down_prob = float(down_prob)
-                left_prob = float(left_prob)
-                right_prob = float(right_prob)
-                to_origin_prob = float(to_origin_prob)
-
-                if up_prob < 0 or down_prob < 0 or left_prob < 0 or right_prob < 0 or to_origin_prob < 0:
-                    raise ValueError
-
-                if up_prob == 0 and down_prob == 0 and left_prob == 0 and right_prob == 0 and to_origin_prob == 0:
-                    raise ValueError
-
-            except ValueError:
-                self.show_error("Error",
-                                "Probabilities must be non-negative floats and at least one of them must be non-zero!")
-                return
-
-            self.controller.add_walker(walker_type, walker_count, up_prob, down_prob, left_prob, right_prob,
-                                       to_origin_prob)
+            self.controller.add_walker(walker_type, walker_count, **kwargs)
         else:
             self.controller.add_walker(walker_type, walker_count)
 
@@ -551,23 +537,27 @@ class SimulationController:
         self.model = SimulationRunner()
         self.view = SimulationGUI(tk.Tk(), self)
         self.walkers = {}  # Dictionary to keep track of the walkers added to the simulation
+        # Create a dictionary that maps the walker types to their respective classes
+        self.walker_classes = {
+            'BiasedWalker': BiasedWalker,
+            'OneUnitRandomWalker': OneUnitRandomWalker,
+            'DiscreteStepWalker': DiscreteStepWalker,
+            'RandomStepWalker': RandomStepWalker,
+            'NoRepeatWalker': NoRepeatWalker
+        }
 
-    def add_walker(self, walker_type, walker_count, up_prob=None, down_prob=None, left_prob=None, right_prob=None,
-                   to_origin_prob=None):
+    def add_walker(self, walker_type, walker_count, **kwargs):
         for _ in range(walker_count):
-            if walker_type == 'BiasedWalker':
-                walker = BiasedWalker(up_prob, down_prob, left_prob, right_prob, to_origin_prob)
-            elif walker_type == 'OneUnitRandomWalker':
-                walker = OneUnitRandomWalker()
-            elif walker_type == 'DiscreteStepWalker':
-                walker = DiscreteStepWalker()
-            elif walker_type == 'RandomStepWalker':
-                walker = RandomStepWalker()
+            if walker_type in self.walker_classes:
+                walker_class = self.walker_classes[walker_type]
+                if walker_type == 'BiasedWalker':
+                    walker = walker_class(**kwargs)
+                else:
+                    walker = walker_class()
+                self.model.simulation.add_walker(walker)
+                self.walkers[walker_type] = self.walkers.get(walker_type, 0) + 1
             else:
                 self.view.show_error("Error", "Invalid walker type! please select a walker")
-                return
-            self.model.simulation.add_walker(walker)
-            self.walkers[walker_type] = self.walkers.get(walker_type, 0) + 1  # Increment the count of the walker type
 
     def add_barrier(self, barrier_name, x, y, width, height):
         try:

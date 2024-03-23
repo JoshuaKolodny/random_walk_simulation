@@ -107,7 +107,7 @@ class Simulation:
         return self.__portal_gates
 
     @property
-    def sim_obstacles_locations(self) -> set:
+    def sim_obstacles_locations(self) -> Dict:
         """
         Returns the locations of obstacles in the simulation.
 
