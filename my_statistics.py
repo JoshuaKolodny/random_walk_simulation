@@ -50,6 +50,9 @@ class Statistics:
 
 
     @property
+    def simulations(self):
+        return self.__simulations
+    @property
     def num_of_steps(self):
         return self.__num_of_steps
 
@@ -89,7 +92,9 @@ class Statistics:
             self.__simulations[walker_name][name] = {
                 'locations': locations,
                 'escaped_from_radius_10': walker_info[RADIUS_10],
-                'passed_y_axis': np.array(walker_info[PASSED_Y])
+                'passed_y_axis': np.array(walker_info[PASSED_Y]),
+                'barriers': simulation.barriers,  # Add barriers to the dictionary
+                'portal_gates': simulation.portal_gates  # Add portal_gates to the dictionary
             }
 
     def calculate_average_locations_per_cell(self) -> Dict[str, np.ndarray]:

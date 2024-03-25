@@ -148,6 +148,7 @@ class SimulationRunner:
 
         # Plot graphs
         g = Graph(self.statistics)  # Initialize a new Graph object
+        g.plot_single_simulation()  # Plot the first simulation
         g.plot_average_distance_from_origin()
         g.plot_distances_from_axis(axis='X')
         g.plot_distances_from_axis(axis='Y')
