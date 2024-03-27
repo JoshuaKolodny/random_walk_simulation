@@ -1,3 +1,5 @@
+from typing import Dict
+
 import matplotlib.pyplot as plt
 import seaborn as sns  # type: ignore
 from my_statistics import Statistics
@@ -6,12 +8,54 @@ import textwrap
 
 
 class Graph:
-    def __init__(self, statistics: Statistics):
+    def __init__(self, statistics: Statistics, barriers: Dict, portal_gates: Dict):
         self.statistics = statistics
+        self.barriers = barriers
+        self.portal_gates = portal_gates
         # Set the default seaborn theme
         sns.set_theme()
 
+    def plot_barriers(self):
+        # Plot barriers with a solid color fill
+        for barrier in self.barriers.values():
+            # Extract barrier coordinates
+            min_x, min_y, max_x, max_y = barrier.bounds.bounds()
+
+            # Calculate width and height
+            width = max_x - min_x
+            height = max_y - min_y
+
+            # Plot the barrier rectangle
+            plt.fill([min_x, min_x + width, min_x + width, min_x], [min_y, min_y, min_y + height, min_y + height],
+                     color='red', alpha=0.5)
+
+    def plot_portal_gates(self):
+        # Plot portal gates with a solid color fill and an arrow
+        for portal_gate in self.portal_gates.values():
+            # Extract portal gate coordinates
+            min_x, min_y, max_x, max_y = portal_gate.bounds.bounds()
+
+            # Calculate width and height
+            width = max_x - min_x
+            height = max_y - min_y
+
+            # Plot the portal gate rectangle
+            plt.fill([min_x, min_x + width, min_x + width, min_x], [min_y, min_y, min_y + height, min_y + height],
+                     color='green', alpha=0.5)
+
+            # Extract destination coordinates
+            dest_x, dest_y, _ = portal_gate.destination
+
+            # Calculate portal gate center
+            center_x = (max_x + min_x) / 2
+            center_y = (max_y + min_y) / 2
+
+            # Plot the arrow from the portal gate to its destination
+            plt.arrow(center_x, center_y, dest_x - center_x, dest_y - center_y, color='green',
+                      length_includes_head=True, head_width=0.5)
+
     def plot_single_simulation(self):
+
         # Get the first simulation name
         first_simulation_name = list(next(iter(self.statistics.simulations.values())).keys())[0]
 
@@ -23,36 +67,11 @@ class Graph:
 
                 plt.plot(walker_locations[:, 0], walker_locations[:, 1], label=walker_name)
 
-        # Plot barriers with a solid color fill
-        if 'barriers' in self.statistics.simulations:
-            for barrier in self.statistics.simulations['barriers'].values():
-                # Define the corners of the barrier
-                barrier_corners = [
-                    (barrier.x, barrier.y),  # Bottom left
-                    (barrier.x + barrier.width, barrier.y),  # Bottom right
-                    (barrier.x + barrier.width, barrier.y + barrier.height),  # Top right
-                    (barrier.x, barrier.y + barrier.height)  # Top left
-                ]
-                # Extract the x and y coordinates
-                xs, ys = zip(*barrier_corners)
-                plt.fill(xs, ys, color='red')
+        # Call the plot_barriers function
+        self.plot_barriers()
 
-        # Plot portal gates with a solid color fill
-        if 'portal_gates' in self.statistics.simulations:
-            for portal_gate in self.statistics.simulations['portal_gates'].values():
-                # Define the corners of the portal gate
-                portal_gate_corners = [
-                    (portal_gate.x, portal_gate.y),  # Bottom left
-                    (portal_gate.x + portal_gate.width, portal_gate.y),  # Bottom right
-                    (portal_gate.x + portal_gate.width, portal_gate.y + portal_gate.height),  # Top right
-                    (portal_gate.x, portal_gate.y + portal_gate.height)  # Top left
-                ]
-                # Extract the x and y coordinates
-                xs, ys = zip(*portal_gate_corners)
-                plt.fill(xs, ys, color='green')
-                plt.arrow(portal_gate.x, portal_gate.y, portal_gate.dest_x - portal_gate.x,
-                          portal_gate.dest_y - portal_gate.y,
-                          color='green', length_includes_head=True, head_width=0.5)
+        # Call the plot_portal_gates function
+        self.plot_portal_gates()
 
         plt.legend()
         plt.title('Walker Positions (First Simulation)')

@@ -5,6 +5,7 @@ X = 0  # Index for x-coordinate in a tuple
 Y = 1  # Index for y-coordinate in a tuple
 Z = 2  # Index for z-coordinate in a tuple
 
+
 class Obstacle(ABC):
     """
     An abstract base class representing an obstacle.

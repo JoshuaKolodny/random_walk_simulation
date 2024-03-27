@@ -1,9 +1,15 @@
+import os
 import tkinter as tk
-from tkinter import messagebox, ttk
-
+from tkinter import ttk, messagebox
 from PIL import ImageTk, Image, ImageEnhance
-
-from main import *
+from Walker.biased_walker import BiasedWalker
+from Walker.discrete_step_walker import DiscreteStepWalker
+from Walker.no_repeat_walker import NoRepeatWalker
+from Walker.one_unit_random_walker import OneUnitRandomWalker
+from Walker.random_step_walker import RandomStepWalker
+from simulation_runner import SimulationRunner
+from obstacles_and_barriers import Barrier2D
+from portal_gate import PortalGate
 
 
 class GuiHelper:
@@ -80,7 +86,7 @@ class SimulationGUI:
         self.root.geometry("1200x600")  # Set the size of the window to 1200x600
         self.root.resizable(False, False)  # Prevent the window from being resizable
 
-        # Load the background image
+        # Now use image_path when opening the image file
         bg_image = Image.open('background_app_image.jpg')
         bg_image = bg_image.resize((1200, 600))  #
         # Add opacity to the image by reducing its brightness
@@ -98,6 +104,8 @@ class SimulationGUI:
         self.root.grid_columnconfigure(2, weight=3)
 
         self._create_gui_components()
+        # Bind the "h" key to the open_readme method
+        self.root.bind('h', self.open_readme)
 
     def _create_gui_components(self):
         self._create_walker_selection()
@@ -211,6 +219,7 @@ class SimulationGUI:
         # If the obstacle was added successfully, add it to the obstacle table
         if added_obstacle:
             self.obstacle_table.insert("", "end", values=(obstacle_name, x, y, width, height, dest_x, dest_y))
+        self.__clear_obstacle_entry_fields()
 
     def remove_obstacle(self):
         # Get the selected obstacle from the obstacle table
@@ -341,7 +350,8 @@ class SimulationGUI:
         self.button_label_frame = tk.Frame(self.walker_frame)
         self.button_label_frame.grid(row=8, column=0, columnspan=2)  # Center the frame
 
-        self.remove_walker_button = GuiHelper.create_styled_button(self.button_label_frame, text="Remove Walker", command=self.remove_walker)
+        self.remove_walker_button = GuiHelper.create_styled_button(self.button_label_frame,
+                                                                   text="Remove Walker", command=self.remove_walker)
         self.remove_walker_button.grid(row=0, column=0, padx=5, pady=5)  # Add spacing
 
         # Add the walker count label to the new frame
@@ -381,16 +391,16 @@ class SimulationGUI:
         except ValueError:
             return False
 
-    # def validate_walker_count(self, new_value):
-    #     if not self.validate_positive_integer(new_value):
-    #         self.walker_count.config(highlightbackground="red")
-    #     else:
-    #         self.walker_count.config(highlightbackground="white")
-    #     return True  # Always return True to accept the input
-
     def _create_simulation_buttons(self):
-        self.run_button = GuiHelper.create_styled_button(self.simulation_frame, text="Run Simulation", command=self.run_simulation)
+        self.run_button = GuiHelper.create_styled_button(self.simulation_frame,
+                                                         text="Run Simulation", command=self.run_simulation)
         self.run_button.grid(row=3, column=0, columnspan=2, padx=5, pady=5)
+        self.help_button = GuiHelper.create_styled_button(self.simulation_frame, text="Help", command=self.open_readme)
+        self.help_button.grid(row=4, column=0, columnspan=2, padx=5, pady=5)
+
+    def open_readme(self, event=None):
+        """Open the README file with the default application."""
+        os.system('start README.txt')
 
     def add_walker(self):
         walker_type = self.walker_type.get()
@@ -492,17 +502,7 @@ class SimulationGUI:
         num_steps = int(num_steps_str)
         self.controller.run_simulation(num_simulations, num_steps)
 
-    def reset_gui(self):
-        # Reset walker type to 'BiasedWalker'
-        self.walker_type_var.set('BiasedWalker')
-
-        # Reset obstacle type to 'Barrier'
-        self.obstacle_type_var.set('Barrier')
-
-        # Clear the walker count entry field
-        self.walker_count.delete(0, 'end')
-
-        # Clear the obstacle entry fields
+    def __clear_obstacle_entry_fields(self):
         self.obstacle_name.entry.delete(0, 'end')
         self.obstacle_x.entry.delete(0, 'end')
         self.obstacle_y.entry.delete(0, 'end')
@@ -510,6 +510,19 @@ class SimulationGUI:
         self.obstacle_height.entry.delete(0, 'end')
         self.obstacle_dest_x.entry.delete(0, 'end')
         self.obstacle_dest_y.entry.delete(0, 'end')
+
+    def reset_gui(self):
+        # Reset walker type to 'BiasedWalker'
+        self.walker_type_var.set('BiasedWalker')
+
+        # Clear the walker count entry field
+        self.walker_count.delete(0, 'end')
+
+        # Reset obstacle type to 'Barrier'
+        self.obstacle_type_var.set('Barrier')
+
+        # Clear the obstacle entry fields
+        self.__clear_obstacle_entry_fields()
 
         # Reset BiasedWalker parameters
         for entry in self.biased_walker_params.values():
@@ -543,7 +556,7 @@ class SimulationGUI:
 class SimulationController:
     def __init__(self):
         self.model = SimulationRunner()
-        self.view = SimulationGUI(tk.Tk(), self)
+        self.view = None
         self.walkers = {}  # Dictionary to keep track of the walkers added to the simulation
         # Create a dictionary that maps the walker types to their respective classes
         self.walker_classes = {
@@ -617,7 +630,6 @@ class SimulationController:
         if not self.model.simulation.walkers:
             self.view.show_error("Error", "There must be at least one walker!")
             return
-
         self.model.run_simulation(num_simulations, num_steps)
         # Show a message box when the simulation is done
         self.view.show_message("Simulation", "Simulation completed!")
