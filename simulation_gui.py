@@ -14,7 +14,18 @@ from portal_gate import PortalGate
 
 class GuiHelper:
     @staticmethod
-    def create_label_entry_pair(frame, text, row):
+    def create_label_entry_pair(frame: tk.Frame, text: str, row: int) -> tk.Frame:
+        """
+        Creates a pair of label and entry widgets and places them in a new frame.
+
+        Args:
+            frame (tk.Frame): The parent frame for the new frame.
+            text (str): The text to be displayed in the label.
+            row (int): The row in the grid of the parent frame where the new frame will be placed.
+
+        Returns:
+            tk.Frame: The new frame containing the label and entry widgets.
+        """
         pair_frame = tk.Frame(frame)
         pair_frame.grid(row=row, column=0, padx=5, pady=5, sticky=tk.W + tk.E)
 
@@ -33,7 +44,17 @@ class GuiHelper:
         return pair_frame
 
     @staticmethod
-    def create_custom_entry(parent, **kwargs):
+    def create_custom_entry(parent: tk.Widget, **kwargs) -> ttk.Entry:
+        """
+        Creates a custom styled ttk.Entry widget.
+
+        Args:
+            parent (tk.Widget): The parent widget for the new Entry widget.
+            **kwargs: Arbitrary keyword arguments to be passed to the ttk.Entry constructor.
+
+        Returns:
+            ttk.Entry: The new Entry widget.
+        """
         # Create a style
         style = ttk.Style()
 
@@ -47,7 +68,17 @@ class GuiHelper:
         return entry
 
     @staticmethod
-    def create_styled_button(parent, **kwargs):
+    def create_styled_button(parent: tk.Widget, **kwargs) -> tk.Button:
+        """
+        Creates a custom styled tk.Button widget.
+
+        Args:
+            parent (tk.Widget): The parent widget for the new Button widget.
+            **kwargs: Arbitrary keyword arguments to be passed to the tk.Button constructor.
+
+        Returns:
+            tk.Button: The new Button widget.
+        """
         # Define the button style
         button_hover_color = 'gray'
         regular_color = 'lightgray'
@@ -102,6 +133,10 @@ class SimulationGUI:
         self.root.grid_columnconfigure(0, weight=3)
         self.root.grid_columnconfigure(1, weight=1)
         self.root.grid_columnconfigure(2, weight=3)
+
+        # Create a new frame for the help button at the top of the middle column
+        self.help_button_frame = tk.Frame(self.root)
+        self.help_button_frame.grid(row=0, column=1, padx=10, pady=(10, 0), sticky=tk.N)
 
         self._create_gui_components()
         # Bind the "h" key to the open_readme method
@@ -384,9 +419,9 @@ class SimulationGUI:
         self.run_button = GuiHelper.create_styled_button(self.simulation_frame,
                                                          text="Run Simulation", command=self.run_simulation)
         self.run_button.grid(row=3, column=0, columnspan=2, padx=5, pady=5)
-        self.help_button = GuiHelper.create_styled_button(self.simulation_frame, text="Help",
+        self.help_button = GuiHelper.create_styled_button(self.help_button_frame, text="Help",
                                                           command=self.open_help_file)
-        self.help_button.grid(row=4, column=0, columnspan=2, padx=5, pady=5)
+        self.help_button.grid(row=0, column=0, columnspan=2)
 
     def open_help_file(self, event=None):
         """Open a help file with the default application."""
@@ -552,30 +587,33 @@ class SimulationController:
         }
 
     def add_walker(self, walker_type, walker_count, **kwargs):
-        for _ in range(walker_count):
-            if walker_type in self.walker_classes:
-                walker_class = self.walker_classes[walker_type]
-                if walker_type == 'BiasedWalker':
-                    walker = walker_class(**kwargs)
+        try:
+            for _ in range(walker_count):
+                if walker_type in self.walker_classes:
+                    walker_class = self.walker_classes[walker_type]
+                    if walker_type == 'BiasedWalker':
+                        walker = walker_class(**kwargs)
+                    else:
+                        walker = walker_class()
+                    self.model.simulation.add_walker(walker)
+                    self.walkers[walker_type] = self.walkers.get(walker_type, 0) + 1
                 else:
-                    walker = walker_class()
-                self.model.simulation.add_walker(walker)
-                self.walkers[walker_type] = self.walkers.get(walker_type, 0) + 1
-            else:
-                self.view.show_error("Error", "Invalid walker type! please select a walker")
+                    MessageUtils.show_error("Error", "Invalid walker type! please select a walker")
+        except ValueError as e:
+            MessageUtils.show_error("Error", str(e))
 
     def add_barrier(self, barrier_name, x, y, width, height):
         try:
             barrier = Barrier2D(x, y, width, height)
             result = self.model.simulation.add_barrier(barrier_name, barrier)
             if isinstance(result, str):
-                self.view.show_error("Error", result)
+                MessageUtils.show_error("Error", result)
                 return False
 
             return True
 
         except Exception as e:
-            self.view.show_error("Error", str(e))
+            MessageUtils.show_error("Error", str(e))
             return False
 
     def add_portal_gate(self, portal_gate_name, x, y, width, height, dest_x, dest_y):
@@ -583,23 +621,23 @@ class SimulationController:
             portal_gate = PortalGate(x, y, width, height, dest_x, dest_y)
             result = self.model.simulation.add_portal_gate(portal_gate_name, portal_gate)
             if isinstance(result, str):
-                self.view.show_error("Error", result)
+                MessageUtils.show_error("Error", result)
                 return False
 
             return True
 
         except Exception as e:
-            self.view.show_error("Error", str(e))
+            MessageUtils.show_error("Error", str(e))
             return False
 
     def remove_obstacle(self, obstacle_name):
         # Remove the obstacle from the simulation
         removed = self.model.simulation.remove_obstacle(obstacle_name)
         if not removed:
-            self.view.show_error("Error", "The obstacle was not found in the simulation!")
+            MessageUtils.show_error("Error", "The obstacle was not found in the simulation!")
         else:
             # If the obstacle was successfully removed, update the GUI
-            self.view.show_message("Success",
+            MessageUtils.show_message("Success",
                                    f"The obstacle '{obstacle_name}' was successfully removed from the simulation.")
 
     def remove_walker(self, walker_type):
@@ -612,10 +650,10 @@ class SimulationController:
 
     def run_simulation(self, num_simulations, num_steps):
         if not self.model.simulation.walkers:
-            self.view.show_error("Error", "There must be at least one walker!")
+            MessageUtils.show_error("Error", "There must be at least one walker!")
             return
         self.model.run_simulation(num_simulations, num_steps)
         # Show a message box when the simulation is done
-        self.view.show_message("Simulation", "Simulation completed!")
+        MessageUtils.show_message("Simulation", "Simulation completed!")
         # Reset the GUI parameters
         self.view.reset_gui()
