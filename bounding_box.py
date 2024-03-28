@@ -1,5 +1,6 @@
 from typing import Optional, Tuple
 
+
 class BoundingBox:
     """
     A class used to represent a 2D bounding box.
@@ -201,6 +202,6 @@ class BoundingBox3D(BoundingBox):
             return super().contains_point(x, y)
         else:
             # A point is within the bounding box if its x-coordinate is between the minimum and maximum x-coordinates
-            # of the bounding box, its y-coordinate is between the minimum and maximum y-coordinates of the bounding box,
-            # and its z-coordinate is between the minimum and maximum z-coordinates of the bounding box
+            # of the bounding box, its y-coordinate is between the min and max y-coordinates of the bounding box,
+            # and its z-coordinate is between the min and max z-coordinates of the bounding box
             return self.min_x <= x <= self.max_x and self.min_y <= y <= self.max_y and self.min_z <= z <= self.max_z

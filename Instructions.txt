@@ -8,8 +8,8 @@ The App is split into three sections:
 
 - Step 3: Choosing the number of simulations and number of steps per simulation
 
-It is reccomended to go in order, however, you can choose to do Step 2 before Step 1 if you'd wish, but Step 3 should be done only once
-Step 1 and Step 2 are completed.
+It is reccomended to go in order, however, you can choose to do Step 2 before Step 1 if you'd wish to, 
+but Step 3 should be done only once Step 1 and Step 2 are completed.
 
 IMPORTANT NOTE: The program won't run the simulation unless at least one walker is added to the simulation, and num of steps and num of simulations are positive Integers.
 
@@ -41,7 +41,7 @@ Step 2:
 
 	a) Select the obstacle you'd like to add from the dropdown list
 	b) Enter the name you'd like to give the obstacle
-	c) Enter a float number for X,Y,Width,Height parameters, the X,Y represent the coordiante of the bottom left corner of the obstacle
+	c) Enter a float number for X,Y,Width,Height parameters, the X,Y represent the coordiantes of the bottom left corner of the obstacle
 	d) If "Portal Gate" was selected from the dropdown, enter a float for Dest X, Dest Y which represents the destination
 	you'd like to teleport the walker if it enters the portal gate bounds
 	e) Next click the "Add Obstacle" button and if the paramteres are all valid it will add the obstacle to the Obstacles Treeview Table

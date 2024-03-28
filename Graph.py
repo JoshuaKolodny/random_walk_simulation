@@ -1,14 +1,23 @@
 from typing import Dict
-
 import matplotlib.pyplot as plt
 import seaborn as sns  # type: ignore
 from my_statistics import Statistics
 import pandas as pd
 import textwrap
+from obstacles_and_barriers import Barrier2D
+from portal_gate import PortalGate
 
 
 class Graph:
-    def __init__(self, statistics: Statistics, barriers: Dict, portal_gates: Dict):
+    def __init__(self, statistics: Statistics, barriers: Dict[str, Barrier2D], portal_gates: Dict[str, PortalGate]):
+        """
+        Initialize the Graph class.
+
+        Args:
+            statistics (Statistics): The statistics object.
+            barriers (Dict): The barrier's dictionary.
+            portal_gates (Dict): The portal gates dictionary.
+        """
         self.statistics = statistics
         self.barriers = barriers
         self.portal_gates = portal_gates
@@ -16,7 +25,9 @@ class Graph:
         sns.set_theme()
 
     def plot_barriers(self):
-        # Plot barriers with a solid color fill
+        """
+        Plot barriers with a solid color fill.
+        """
         for barrier in self.barriers.values():
             # Extract barrier coordinates
             min_x, min_y, max_x, max_y = barrier.bounds.bounds()
@@ -30,7 +41,9 @@ class Graph:
                      color='red', alpha=0.5)
 
     def plot_portal_gates(self):
-        # Plot portal gates with a solid color fill and an arrow
+        """
+        Plot portal gates with a solid color fill and an arrow.
+        """
         for portal_gate in self.portal_gates.values():
             # Extract portal gate coordinates
             min_x, min_y, max_x, max_y = portal_gate.bounds.bounds()
@@ -55,7 +68,9 @@ class Graph:
                       length_includes_head=True, head_width=0.5)
 
     def plot_single_simulation(self):
-
+        """
+        Plot the first simulation that the user ran.
+        """
         # Get the first simulation name
         first_simulation_name = list(next(iter(self.statistics.simulations.values())).keys())[0]
 
@@ -80,13 +95,19 @@ class Graph:
         plt.show()
 
     def plot_average_locations_per_cell(self):
-        for walker_name, average_locations in self.statistics.calculate_average_locations_per_cell().items():
+        """
+        Plot the average locations per cell.
+        """
+        for walker_name, average_locations in self.statistics.calculate_average_locations_per_step().items():
             sns.lineplot(data=average_locations, label=walker_name)
         plt.legend()
         plt.title('Average Locations Per Cell')
         plt.show()
 
     def plot_average_distance_from_origin(self):
+        """
+        Plot the average distance from origin.
+        """
         for walker_name, average_distance in self.statistics.calculate_average_distance_from_origin().items():
             sns.lineplot(data=average_distance, label=walker_name)
         plt.legend()
@@ -96,6 +117,12 @@ class Graph:
         plt.show()
 
     def plot_distances_from_axis(self, axis='X'):
+        """
+        Plot the distances from the specified axis.
+
+        Args:
+            axis (str): The axis to calculate distances from. Default is 'X'.
+        """
         for walker_name, distances in self.statistics.calculate_distances_from_axis(axis).items():
             sns.lineplot(data=distances, label=walker_name)
         plt.legend()
@@ -105,6 +132,9 @@ class Graph:
         plt.show()
 
     def plot_escape_radius_10(self):
+        """
+        Plot the escape radius 10 statistics.
+        """
         data = []
         for walker_name, stats in self.statistics.calculate_escape_radius_10().items():
             average = stats['average'] if stats['average'] is not None else 0
@@ -133,6 +163,9 @@ class Graph:
         plt.show()
 
     def plot_average_passed_y(self):
+        """
+        Plot the average amount of times each walker passed the Y axis.
+        """
         for walker_name, averages in self.statistics.calculate_average_passed_y().items():
             sns.lineplot(data=averages, label=walker_name)
         plt.legend()
@@ -142,6 +175,9 @@ class Graph:
         plt.show()
 
     def plot_lead_counts(self):
+        """
+        Plot the average amount of times each walker lead per simulation meaning was furthest from origin.
+        """
         # Get the average lead counts
         average_leads = self.statistics.calculate_average_leads()
 

@@ -1,6 +1,7 @@
 import numpy as np
 from Walker.walker import Walker
 
+
 class RandomStepWalker(Walker):
     """
     A Walker subclass that simulates a random step walk.

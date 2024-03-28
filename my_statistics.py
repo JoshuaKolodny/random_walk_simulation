@@ -41,23 +41,47 @@ class Statistics:
 
     def __init__(self) -> None:
         """
-        Constructs all the necessary attributes for the Statistics object.
+        Initializes a Statistics object with the necessary attributes.
+
+        Attributes:
+            __total_simulations (int): The total number of simulations conducted.
+            __num_of_steps (int): The number of steps taken in a simulation.
+            __simulations (Dict): A dictionary to store the simulation data.
+            __average_locations (Dict[str, np.ndarray]): A dictionary to store the average locations of each walker.
         """
         self.__total_simulations = 0
         self.__num_of_steps = 0
         self.__simulations: Dict = {}
         self.__average_locations: Dict[str, np.ndarray] = {}
 
-
     @property
     def simulations(self):
+        """
+        Property to get the simulations data.
+
+        Returns:
+            Dict: The simulations data.
+        """
         return self.__simulations
+
     @property
     def num_of_steps(self):
+        """
+        Property to get the number of steps taken in a simulation.
+
+        Returns:
+            int: The number of steps taken in a simulation.
+        """
         return self.__num_of_steps
 
     @num_of_steps.setter
     def num_of_steps(self, num_of_steps):
+        """
+        Setter to set the number of steps taken in a simulation.
+
+        Args:
+            num_of_steps (int): The number of steps to be set.
+        """
         self.__num_of_steps = num_of_steps
 
     @property
@@ -78,8 +102,8 @@ class Statistics:
 
         Parameters
         ----------
-        name : str
-            the name of the simulation
+        name : str- the name of the simulation
+
         simulation : Simulation
             the simulation to be added
         """
@@ -97,9 +121,11 @@ class Statistics:
                 'portal_gates': simulation.portal_gates  # Add portal_gates to the dictionary
             }
 
-    def calculate_average_locations_per_cell(self) -> Dict[str, np.ndarray]:
+    def calculate_average_locations_per_step(self) -> Dict[str, np.ndarray]:
         """
-        Calculates the average locations per cell for each walker.
+        Calculates the average locations per step for each walker, using the absolute values of the locations,
+        in order to account for the fact that the walkers can move in any direction, but we want for statistics
+        purposes to know how far they are from the origin.
 
         Returns
         -------
@@ -250,7 +276,9 @@ class Statistics:
 
     def calculate_average_leads(self) -> Dict[str, float]:
         """
-        Calculates the average number of times each walker led the race in all simulations.
+        Calculates the average number of times each walker led the race in all simulations. Meaning I increment
+        after every step of every simulation the walker that is furthest from the origin, then divide
+        each walker's count by the number of simulations to get the average.
 
         Returns
         -------
@@ -287,52 +315,3 @@ class Statistics:
                                 walker_total_lead_counts.items()}
 
         return walker_average_leads
-
-#
-# if __name__ == '__main__':
-#     simulation1 = Simulation()
-#
-#     # Add some walkers
-#     walker1 = OneUnitRandomWalker()
-#     walker2 = DiscreteStepWalker()
-#     # walker3 = BiasedWalker(100, 1000, 100, 100, 100)
-#     walker4 = RandomStepWalker()
-#     simulation1.add_walker(walker1)
-#     simulation1.add_walker(walker2)
-#     # simulation1.add_walker(walker3)
-#     simulation1.add_walker(walker4)
-#     # Create instance of Statistics
-#     statistics = Statistics()
-#
-#     # Run simulation for 10 steps
-#     for i in range(1, 3):
-#         simulation1.simulate(500)
-#
-#         for walker_name, walker_info in simulation1.walkers.items():
-#             print(f"Walker {walker_name}:")
-#             print(f"  Locations: {walker_info[WALKER_LOCATIONS]}")
-#             print(f"  Steps to escape radius 10: {walker_info[RADIUS_10]}")
-#             print(f"  Number of times passed y-axis: {walker_info[PASSED_Y]}")
-#
-#         statistics.add_simulation(f"Simulation {i}", simulation1)
-#         simulation1.reset()
-#
-#
-#
-#
-#     # Calculate statistics
-#     statistics.calculate_average_locations_per_cell()
-#     average_distance_from_origin = statistics.calculate_average_distance_from_origin()
-#     distances_from_axis_x = statistics.calculate_distances_from_axis(axis='Y')
-#     distances_from_axis_y = statistics.calculate_distances_from_axis(axis='X')
-#     escape_radius_10_stats = statistics.calculate_escape_radius_10()
-#     passed_y_stats = statistics.calculate_average_passed_y()
-#     # Print statistics
-#     print(average_distance_from_origin)
-#     print(distances_from_axis_x)
-#     print(distances_from_axis_y)
-#     print(escape_radius_10_stats)
-#     print(passed_y_stats)
-#
-#     g = Graph(statistics)
-#     g.plot_average_distance_from_origin()

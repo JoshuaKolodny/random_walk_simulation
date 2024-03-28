@@ -246,8 +246,10 @@ class Simulation:
 
         Parameters
         ----------
-        barrier_name : str- the name of the barrier
-        barrier : Barrier2D- the barrier to be added to the simulation
+        barrier_name : str
+            the name of the barrier.
+        barrier :
+            Barrier2D the barrier to be added to the simulation
 
         Returns
         -------
@@ -442,34 +444,3 @@ class Simulation:
             walker_info[PASSED_Y] = []
         self.__last_x_position = 0
         self.__passed_y_counter = 0
-
-    # def reset_all_parameters(self) -> None:
-    #     """
-    #     Resets the simulation entirely if finished running all the simulations
-    #     """
-    #     self.__barriers={}
-    #     self.__sim_obstacles_locations= set()
-    #     self.__portal_gates= {}
-
-# if __name__ == "__main__":
-#     simulation = Simulation()
-#
-#     # Add some walkers
-#     walker1 = OneUnitRandomWalker()
-#     walker2 = DiscreteStepWalker()
-#     walker3 = BiasedWalker(100, 1000, 100, 100, 100)
-#     walker4 = RandomStepWalker()
-#     simulation.add_walker(walker1)
-#     simulation.add_walker(walker2)
-#     simulation.add_walker(walker3)
-#     simulation.add_walker(walker4)
-#
-#     # Run simulation for 2 steps
-#     simulation.simulate(500)
-#
-#     # Check the results
-#     for walker_name, walker_info in simulation.walkers.items():
-#         print(f"Walker {walker_name}:")
-#         print(f"  Locations: {walker_info[WALKER_LOCATIONS]}")
-#         print(f"  Steps to escape radius 10: {walker_info[RADIUS_10]}")
-#         print(f"  Number of times passed y-axis: {walker_info[PASSED_Y]}")

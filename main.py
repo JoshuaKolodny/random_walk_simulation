@@ -1,14 +1,20 @@
 import tkinter
-from simulation_gui import SimulationGUI  # Import the SimulationGUI class
+from simulation_gui import SimulationGUI
 from simulation_gui import SimulationController
 import argparse
 
 
 if __name__ == '__main__':
+    # Create a parser for command-line options, arguments and sub-commands
     parser = argparse.ArgumentParser(description='To run the program write in the command line: python main.py')
+    # Parse the arguments passed to the script
     args = parser.parse_args()
-    controller = SimulationController()  # Create an instance of the SimulationController class
-    root = tkinter.Tk()  # Create a root window
-    controller.view = SimulationGUI(root, controller)  # Create an instance of the SimulationGUI class
-    root.mainloop()  # Start the main event loop
+    # Create an instance of the SimulationController class
+    controller = SimulationController()
+    # Create a root window using tkinter
+    root = tkinter.Tk()
+    # Create an instance of the SimulationGUI class and assign it to the view attribute of the controller
+    controller.view = SimulationGUI(root, controller)
+    # Start the main event loop of tkinter
+    root.mainloop()
 
