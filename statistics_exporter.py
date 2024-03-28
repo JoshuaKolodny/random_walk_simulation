@@ -52,9 +52,6 @@ class StatisticsExporter:
         filename : str
             the name of the JSON file
         """
-        # Validate the filename to prevent directory traversal
-        # if ".." in filename or "/" in filename:
-        #     raise ValueError("Invalid filename.")
 
         base_filename, file_extension = os.path.splitext(filename)
         counter = 1

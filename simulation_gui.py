@@ -1,6 +1,6 @@
-import os
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk
+from utils import Utils, MessageUtils, FileUtils
 from PIL import ImageTk, Image, ImageEnhance
 from Walker.biased_walker import BiasedWalker
 from Walker.discrete_step_walker import DiscreteStepWalker
@@ -105,7 +105,7 @@ class SimulationGUI:
 
         self._create_gui_components()
         # Bind the "h" key to the open_readme method
-        self.root.bind('h', self.open_readme)
+        self.root.bind('h', self.open_help_file)
 
     def _create_gui_components(self):
         self._create_walker_selection()
@@ -147,7 +147,8 @@ class SimulationGUI:
         self.obstacle_dest_x = GuiHelper.create_label_entry_pair(self.obstacle_frame, "Dest X:", 7)
         self.obstacle_dest_y = GuiHelper.create_label_entry_pair(self.obstacle_frame, "Dest Y:", 8)
 
-        self.add_obstacle_button = GuiHelper.create_styled_button(self.obstacle_frame, text="Add Obstacle", command=self.add_obstacle)
+        self.add_obstacle_button = GuiHelper.create_styled_button(self.obstacle_frame,
+                                                                  text="Add Obstacle", command=self.add_obstacle)
         self.add_obstacle_button.grid(row=9, column=0, columnspan=2)
 
         # Set the default value for the obstacle type combobox
@@ -168,7 +169,7 @@ class SimulationGUI:
     def add_obstacle(self):
         obstacle_type = self.obstacle_type.get()
         if not obstacle_type:
-            self.show_error("Error", "Please select an obstacle type!")
+            MessageUtils.show_error("Error", "Please select an obstacle type!")
             return
         obstacle_name = self.obstacle_name.entry.get()
         x_str = self.obstacle_x.entry.get()
@@ -178,7 +179,7 @@ class SimulationGUI:
 
         # Check if any of the entry fields are empty
         if not obstacle_name or not x_str or not y_str or not width_str or not height_str:
-            self.show_error("Error", "Please fill in all fields!")
+            MessageUtils.show_error("Error", "Please fill in all fields!")
             return
 
         try:
@@ -187,7 +188,7 @@ class SimulationGUI:
             width = float(width_str)
             height = float(height_str)
         except ValueError:
-            self.show_error("Error", "Please enter valid numbers for x, y, width, and height!")
+            MessageUtils.show_error("Error", "Please enter valid numbers for x, y, width, and height!")
             return
 
         # Assign default values to dest_x and dest_y
@@ -199,14 +200,14 @@ class SimulationGUI:
 
             # Check if dest_x and dest_y fields are empty
             if not dest_x_str or not dest_y_str:
-                self.show_error("Error", "Please fill in all fields for Portal Gate!")
+                MessageUtils.show_error("Error", "Please fill in all fields for Portal Gate!")
                 return
 
             try:
                 dest_x = float(dest_x_str)
                 dest_y = float(dest_y_str)
             except ValueError:
-                self.show_error("Error", "Please enter valid numbers for dest_x and dest_y!")
+                MessageUtils.show_error("Error", "Please enter valid numbers for dest_x and dest_y!")
                 return
 
         added_obstacle = False
@@ -225,7 +226,7 @@ class SimulationGUI:
         # Get the selected obstacle from the obstacle table
         selected_items = self.obstacle_table.selection()
         if not selected_items:
-            self.show_error("Error", "Please select an obstacle to remove!")
+            MessageUtils.show_error("Error", "Please select an obstacle to remove!")
             return
 
         selected_item = selected_items[0]
@@ -263,7 +264,7 @@ class SimulationGUI:
         self.obstacle_button_frame.grid(row=11, column=0, padx=5, pady=5)  # Center the frame
 
         self.remove_obstacle_button = GuiHelper.create_styled_button(self.obstacle_button_frame, text="Remove Obstacle",
-                                                                command=self.remove_obstacle)
+                                                                     command=self.remove_obstacle)
         self.remove_obstacle_button.grid(row=0, column=0, padx=5, pady=5)  # Add spacing
 
     def _create_walker_selection(self):
@@ -287,7 +288,7 @@ class SimulationGUI:
         tk.Label(self.walker_type_frame, text="Select Walker Type:").grid(row=0, column=0, padx=5, pady=5)
         self.walker_type = ttk.Combobox(self.walker_type_frame,
                                         values=['BiasedWalker', 'OneUnitRandomWalker', 'DiscreteStepWalker',
-                                                'RandomStepWalker','NoRepeatWalker'], state='readonly',
+                                                'RandomStepWalker', 'NoRepeatWalker'], state='readonly',
                                         textvariable=self.walker_type_var)
         self.walker_type.grid(row=0, column=1, padx=5, pady=5)
 
@@ -379,43 +380,32 @@ class SimulationGUI:
         self.num_steps.insert(0, '500')  # Insert the default value
         self.num_steps.grid(row=2, column=1, padx=5, pady=5)
 
-    def validate_positive_integer(self, input_value):
-        if input_value == '':
-            return False
-        try:
-            value = int(input_value)
-            if value > 0:
-                return True
-            else:
-                return False
-        except ValueError:
-            return False
-
     def _create_simulation_buttons(self):
         self.run_button = GuiHelper.create_styled_button(self.simulation_frame,
                                                          text="Run Simulation", command=self.run_simulation)
         self.run_button.grid(row=3, column=0, columnspan=2, padx=5, pady=5)
-        self.help_button = GuiHelper.create_styled_button(self.simulation_frame, text="Help", command=self.open_readme)
+        self.help_button = GuiHelper.create_styled_button(self.simulation_frame, text="Help",
+                                                          command=self.open_help_file)
         self.help_button.grid(row=4, column=0, columnspan=2, padx=5, pady=5)
 
-    def open_readme(self, event=None):
-        """Open the README file with the default application."""
-        os.system('start README.txt')
+    def open_help_file(self, event=None):
+        """Open a help file with the default application."""
+        FileUtils.open_file('Instructions.txt', event)
 
     def add_walker(self):
         walker_type = self.walker_type.get()
         walker_count_str = self.walker_count.get()
 
         if not walker_type:
-            self.show_error("Error", "Please select a walker type!")
+            MessageUtils.show_error("Error", "Please select a walker type!")
             return
 
-        if not self.validate_positive_integer(walker_count_str):
-            self.show_error("Error", "Walker count must be a positive integer!")
+        if not Utils.validate_positive_integer(walker_count_str):
+            MessageUtils.show_error("Error", "Walker count must be a positive integer!")
             return
 
         if not walker_count_str:
-            self.show_error("Error", "Please enter a walker count!")
+            MessageUtils.show_error("Error", "Please enter a walker count!")
             return
 
         try:
@@ -423,7 +413,7 @@ class SimulationGUI:
             if not isinstance(walker_count, int) or walker_count <= 0:
                 raise ValueError
         except ValueError:
-            self.show_error("Error", "Walker count must be a positive integer!")
+            MessageUtils.show_error("Error", "Walker count must be a positive integer!")
             return
 
         if walker_type == 'BiasedWalker':
@@ -439,7 +429,7 @@ class SimulationGUI:
                 if up_prob < 0 or down_prob < 0 or left_prob < 0 or right_prob < 0 or to_origin_prob < 0:
                     raise ValueError("Probabilities must be positive")
             except ValueError:
-                self.show_error("Error", "Probabilities must be positive float numbers!")
+                MessageUtils.show_error("Error", "Probabilities must be positive float numbers!")
                 return
 
             # Pack additional arguments into a dictionary
@@ -467,7 +457,7 @@ class SimulationGUI:
     def remove_walker(self):
         selected_items = self.walker_table.selection()
         if not selected_items:
-            self.show_error("Error", "Please select a walker to remove!")
+            MessageUtils.show_error("Error", "Please select a walker to remove!")
             return
         for item in selected_items:
             walker_type = self.walker_table.item(item)['values'][0]
@@ -485,17 +475,17 @@ class SimulationGUI:
         num_simulations_str = self.num_simulations.get()
         num_steps_str = self.num_steps.get()
 
-        if not self.validate_positive_integer(num_simulations_str):
-            self.show_error("Error", "Number of simulations must be a positive integer!")
+        if not Utils.validate_positive_integer(num_simulations_str):
+            MessageUtils.show_error("Error", "Number of simulations must be a positive integer!")
             return
 
-        if not self.validate_positive_integer(num_steps_str):
-            self.show_error("Error", "Number of steps must be a positive integer!")
+        if not Utils.validate_positive_integer(num_steps_str):
+            MessageUtils.show_error("Error", "Number of steps must be a positive integer!")
             return
 
         total_walkers = sum(self.controller.walkers.values())
         if total_walkers == 0:
-            self.show_error("Error", "There must be at least one walker!")
+            MessageUtils.show_error("Error", "There must be at least one walker!")
             return
 
         num_simulations = int(num_simulations_str)
@@ -544,12 +534,6 @@ class SimulationGUI:
         self.num_simulations.insert(0, '20')  # Insert the default value
         self.num_steps.delete(0, 'end')
         self.num_steps.insert(0, '500')  # Insert the default value
-
-    def show_message(self, title, message):
-        messagebox.showinfo(title, message)
-
-    def show_error(self, title, message):
-        messagebox.showerror(title, message)
 
 
 # Controller
@@ -635,8 +619,3 @@ class SimulationController:
         self.view.show_message("Simulation", "Simulation completed!")
         # Reset the GUI parameters
         self.view.reset_gui()
-
-
-if __name__ == "__main__":
-    controller = SimulationController()
-    controller.view.root.mainloop()
