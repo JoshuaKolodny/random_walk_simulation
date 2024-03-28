@@ -3,6 +3,7 @@ from simulation import Simulation
 from my_statistics import Statistics
 from Graph import Graph
 from statistics_exporter import StatisticsExporter
+from utils import MessageUtils
 
 
 class SimulationRunner:
@@ -31,14 +32,14 @@ class SimulationRunner:
         self.simulation = Simulation()  # Initialize a new Simulation object
         self.statistics = Statistics()  # Initialize a new Statistics object
 
-    def run_simulation(self, num_simulations: int, num_steps: int, json_path: Optional[str] = 'stats.json'):
+    def run_simulation(self, num_simulations: int, num_steps: int, json_path: str) -> bool:
         """
         Runs the simulation for a specified number of steps and simulations, calculates statistics, saves the statistics to a JSON file, and plots graphs.
 
         Args:
             num_simulations (int): The number of simulations to run.
             num_steps (int): The number of steps per simulation.
-            json_path (str, optional): The path to the JSON file to save the statistics to. Defaults to 'stats.json'.
+            json_path (str): The path to the JSON file to save the statistics to. Defaults to 'stats.json'.
         """
         self.statistics.num_of_steps = num_steps
         barriers_dict = self.simulation.barriers
@@ -66,19 +67,7 @@ class SimulationRunner:
         stats_exporter.add_data('escape_radius_10_stats', escape_radius_10_stats)
         stats_exporter.add_data('passed_y_stats', passed_y_stats)
         stats_exporter.add_data('average lead count', average_lead_count)
-        try:
-            if json_path is None:
-                raise ValueError("json_path cannot be None")
-            stats_exporter.save_to_json(json_path)  # Save the statistics to a JSON file
-        except PermissionError:
-            print(f"Error: Cannot write to the file {json_path}. Check your permissions.")
-            return
-        except FileNotFoundError:
-            print(f"Error: The directory to save the statistics does not exist.")
-            return
-        except ValueError as e:
-            print(e)
-            return
+        stats_exporter.save_to_json(json_path)  # Save the statistics to a JSON file
 
         # Plot graphs
         g = Graph(self.statistics, barriers_dict, portal_gates_dict)  # Initialize a new Graph object
@@ -93,3 +82,4 @@ class SimulationRunner:
         # Resets simulation runner parameters entirely
         self.simulation = Simulation()
         self.statistics = Statistics()
+        return True

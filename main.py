@@ -4,9 +4,76 @@ from simulation_gui import SimulationController
 import argparse
 
 
+class PreserveNewlineHelpFormatter(argparse.RawTextHelpFormatter):
+    def _fill_text(self, text, width, indent):
+        return ''.join([indent + line for line in text.splitlines(True)])
+
+
 if __name__ == '__main__':
     # Create a parser for command-line options, arguments and sub-commands
-    parser = argparse.ArgumentParser(description='To run the program write in the command line: python main.py')
+    parser = argparse.ArgumentParser(description=
+                                     """
+Welcome! To run the program write in the command line "python main.py" and follow the instructions below: 
+You can also see these instructions inside the App while using it by simply clicking the "help" buton.
+
+These are the instructions for how to use the Random Walk Simulation App:
+
+The App is split into three sections:
+- Step 1: Selecting the walkers you want for the simulation
+- Step 2: Selecting the barriers and portal gates you'd like to add to the simulation
+- Step 3: Choosing the number of simulations and number of steps per simulation
+It is reccomended to go in order, however, you can choose to do Step 2 before Step 1 if you'd wish to, 
+but Step 3 should be done only once Step 1 and Step 2 are completed.
+
+IMPORTANT NOTE: The program won't run the simulation unless at least one walker is added to the simulation,
+and num of steps and num of simulations are positive Integers.
+
+
+Step 1:
+
+a) Select a walker type you'd like to add from the dropdown list
+	
+b) If you selected "Biased Walker" you must enter probabilities for each direction,
+it can be any positive number and the app normalizes it based on all the probabilities you entered:
+	
+1) Up probability- probability for walker to move upwards in each turn
+2) Down probability- probability for walker to move downwards in each turn
+3) Left probability- probability for walker to move left in each turn
+4) Right probability- probability for walker to move upwards in each turn
+5) To Origin probability- probability for walker to move towards the origin in each turn
+		
+It's important to note that you must enter a positive number for at least one of the
+probabilities and the rest can be non negative
+	                                    
+c) If you selected any other walker the next step will be to enter the amount of
+this walker type you'd like to add to the simulation
+	                                    
+d) Next you click the "Add Walker" button and if the parameters were okay the walker you selected will be added to the 
+simulation and will be presented in the Treeview table below, otherwise an appropriate error message will be presented
+	                                    
+e) After adding the walkers you may at any point select the walker on the table and click "Remove Walker"
+if you'd like to remove it from the simulation
+
+Step 2:
+
+a) Select the obstacle you'd like to add from the dropdown list
+b) Enter the name you'd like to give the obstacle
+c) Enter a float number for X,Y,Width,Height parameters, the X,Y represent the coordinates
+of the bottom left corner of the obstacle
+d) If "Portal Gate" was selected from the dropdown, enter a float for Dest X, Dest Y which represents the destination
+you'd like to teleport the walker if it enters the portal gate bounds
+e) Next click the "Add Obstacle" button and if the parameters are all valid it will add the obstacle to the
+Obstacles Treeview Table
+f) Similarly to Step 1, you may at any point select an obstacle and remove it clicking the "Remove Obstacle" button
+
+Step 3:
+
+a) Enter the number of simulations you'd like to run
+b) Enter the number of steps you'd like per simulation
+c) Enter path to save stats, it's optional, if left empty it will be saved
+to the directory from where you ran the project.
+d) Click "Run simulation" to run your customized simulation!""", formatter_class=PreserveNewlineHelpFormatter)
+
     # Parse the arguments passed to the script
     args = parser.parse_args()
     # Create an instance of the SimulationController class
@@ -17,4 +84,3 @@ if __name__ == '__main__':
     controller.view = SimulationGUI(root, controller)
     # Start the main event loop of tkinter
     root.mainloop()
-

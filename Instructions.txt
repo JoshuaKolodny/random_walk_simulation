@@ -1,4 +1,4 @@
-Insructions for how to use the Random Walk Simulation App:
+Instructions for how to use the Random Walk Simulation App:
 
 The App is split into three sections:
 
@@ -29,9 +29,9 @@ Step 1:
 		
 	It's important to note that you must enter a positive number for at least one of the probabilities and the rest can be non negative
 	
-	c) If you selcted any other walker the next step will be to enter the amount of this walker type you'd like to add to the simulation
+	c) If you selected any other walker the next step will be to enter the amount of this walker type you'd like to add to the simulation
 	
-	d) Next you click the "Add Walker" button and if the paramters were okay the walker you selected will be added to the simulation and
+	d) Next you click the "Add Walker" button and if the parameters were okay the walker you selected will be added to the simulation and
 	will be presented in the Treeview table below, otherwise an appropriate error message will be presented
 	
 	e) After adding the walkers you may at any point select the walker on the table and click "Remove Walker" if you'd like to remove it from 
@@ -44,14 +44,16 @@ Step 2:
 	c) Enter a float number for X,Y,Width,Height parameters, the X,Y represent the coordiantes of the bottom left corner of the obstacle
 	d) If "Portal Gate" was selected from the dropdown, enter a float for Dest X, Dest Y which represents the destination
 	you'd like to teleport the walker if it enters the portal gate bounds
-	e) Next click the "Add Obstacle" button and if the paramteres are all valid it will add the obstacle to the Obstacles Treeview Table
+	e) Next click the "Add Obstacle" button and if the paramters are all valid it will add the obstacle to the Obstacles Treeview Table
 	f) Similarly to Step 1, you may at any point select an obstacle and remove it clicking the "Remove Obstacle" button
 
 Step 3:
 
 	a) Enter the number of simulations you'd like to run
 	b) Enter the number of steps you'd like per simulation
-	c) Click "Run simulation" to run your customized simulation!
+	c) Enter path to save stats, it's optional, if left empty it will be saved
+	to the directory from where you ran the project.
+	d) Click "Run simulation" to run your customized simulation!
 		
 	
 

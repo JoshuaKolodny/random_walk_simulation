@@ -1,7 +1,6 @@
 import tkinter as tk
-from tkinter import ttk
-from typing import Optional, Callable, Any
-
+from tkinter import ttk, filedialog
+from typing import Optional, Callable, Any, Dict
 from utils import Utils, MessageUtils, FileUtils
 from PIL import ImageTk, Image, ImageEnhance
 from Walker.biased_walker import BiasedWalker
@@ -15,8 +14,8 @@ from portal_gate import PortalGate
 
 
 class EntryFrame(tk.Frame):
-    # Used for type annotations purposes
-    def __init__(self, master=None, cnf={}, **kw):
+    # Used to allow pairing of ttk.Entry with a tk.Frame
+    def __init__(self, master: Optional[tk.Widget] = None, cnf: Dict = {}, **kw: Any):
         super().__init__(master=master, cnf=cnf, **kw)
         self.entry: Optional[ttk.Entry] = None
 
@@ -124,12 +123,12 @@ class SimulationGUI:
         self.root = root
         self.controller = controller
         self.root.title("Random Walk Simulation")
-        self.root.geometry("1200x550")  # Set the size of the window to 1200x550
+        self.root.geometry("1100x550")  # Set the size of the window to 1200x550
         self.root.resizable(False, False)  # Prevent the window from being resizable
 
         # Load and process the background image
         bg_image = Image.open('background_app_image.jpg')
-        bg_image = bg_image.resize((1200, 550))  # Resize the image to fit the window
+        bg_image = bg_image.resize((1100, 550))  # Resize the image to fit the window
         # Add opacity to the image by reducing its brightness
         enhancer = ImageEnhance.Brightness(bg_image)
         bg_image = enhancer.enhance(0.8)  # Reduce brightness to 50% to simulate 50% opacity
@@ -147,7 +146,7 @@ class SimulationGUI:
 
         # Create a new frame for the help button in the top right corner
         self.help_button_frame = tk.Frame(self.root)
-        self.help_button_frame.grid(row=0, column=2, padx=(0, 25), pady=(5, 0), sticky=tk.E + tk.N)
+        self.help_button_frame.grid(row=0, column=2, padx=(0, 5), pady=(5, 0), sticky=tk.E + tk.N)
 
         # Create a title label
         self.title_label = tk.Label(self.root, text="Random Walk Simulation", font=("Arial", 20, 'bold'),
@@ -156,8 +155,6 @@ class SimulationGUI:
 
         # Create the GUI components
         self._create_gui_components()
-        # Bind the "h" key to the open_readme method
-        self.root.bind('h', self._open_help_file)
 
     def _create_gui_components(self):
         """
@@ -175,7 +172,7 @@ class SimulationGUI:
         Create the GUI components for obstacle creation.
         """
         self.obstacle_frame = tk.Frame(self.root)
-        self.obstacle_frame.grid(row=0, column=2, padx=(5, 100), pady=5, sticky=tk.N + tk.S + tk.E + tk.W)
+        self.obstacle_frame.grid(row=0, column=2, padx=(5, 50), pady=5, sticky=tk.N + tk.S + tk.E + tk.W)
 
         # Create a frame for the title
         self.title_frame = tk.Frame(self.obstacle_frame)
@@ -263,6 +260,9 @@ class SimulationGUI:
             height = float(height_str)
         except ValueError:
             MessageUtils.show_error("Error", "Please enter valid numbers for x, y, width, and height!")
+            return
+        if width < 0 or height < 0:
+            MessageUtils.show_error("Error", "Please enter non negative values for height and width")
             return
 
         # Assign default values to dest_x and dest_y
@@ -365,7 +365,7 @@ class SimulationGUI:
         # Create a frame for the walker selection section
         self.walker_frame = tk.Frame(self.root)
         # Position the walker frame in the grid
-        self.walker_frame.grid(row=0, column=0, padx=(100, 5), pady=5, sticky=tk.N + tk.S + tk.E + tk.W)
+        self.walker_frame.grid(row=0, column=0, padx=(50, 5), pady=5, sticky=tk.N + tk.S + tk.E + tk.W)
 
         # Create a frame for the title
         self.title_frame = tk.Frame(self.walker_frame)
@@ -517,6 +517,24 @@ class SimulationGUI:
         self.num_steps.insert(0, '500')  # Insert the default value
         self.num_steps.grid(row=2, column=1, padx=5, pady=5)
 
+        # Create field for path to save Json
+        tk.Label(self.simulation_frame, text="Path to save Stats: (Optional)").grid(row=3, padx=5, pady=5)
+
+        # Create a button that opens the file dialog when clicked
+        self.browse_button = tk.Button(self.simulation_frame, text="Browse", command=self.browse)
+        self.browse_button.grid(row=3, column=1, padx=5, pady=5)
+
+        # Create a label to display the selected directory
+        self.stats_path = tk.Label(self.simulation_frame, text="", wraplength=200)
+        self.stats_path.grid(row=4, column=0, columnspan=2, pady=5)
+
+    def browse(self):
+        # Open the file dialog and get the selected directory
+        selected_directory = filedialog.askdirectory()
+
+        # Update the stats_path label with the selected directory
+        self.stats_path.config(text=selected_directory)
+
     def _create_simulation_buttons(self):
         """
         Create the buttons for running the simulation and opening the help file.
@@ -525,7 +543,7 @@ class SimulationGUI:
         self.run_button = GuiHelper.create_styled_button(self.simulation_frame,
                                                          text="Run Simulation", command=self.run_simulation)
         # Position the button in the grid
-        self.run_button.grid(row=3, column=0, columnspan=2, padx=5, pady=5)
+        self.run_button.grid(row=5, column=0, columnspan=2, padx=5, pady=5)
 
         # Create a button for opening the help file
         self.help_button = GuiHelper.create_styled_button(self.help_button_frame, text="Help",
@@ -663,7 +681,11 @@ class SimulationGUI:
         # Convert the number of simulations and steps to integers and run the simulation
         num_simulations = int(num_simulations_str)
         num_steps = int(num_steps_str)
-        self.controller.run_simulation(num_simulations, num_steps)
+        stats_path = self.stats_path.cget("text")
+        if stats_path:  # Check if stats_path is not empty
+            self.controller.run_simulation(num_simulations, num_steps, stats_path)
+        else:
+            self.controller.run_simulation(num_simulations, num_steps)  # If stats_path is empty
 
     def __clear_obstacle_entry_fields(self):
         """
@@ -848,19 +870,21 @@ class SimulationController:
                     self.model.simulation.remove_walker(key)  # Remove the walker from the simulation
             del self.walkers[walker_type]  # Remove the walker type from the dictionary
 
-    def run_simulation(self, num_simulations: int, num_steps: int):
+    def run_simulation(self, num_simulations: int, num_steps: int, stats_path: Optional[str] = 'stats.json'):
         """
         Runs the simulation for the specified number of simulations and steps.
 
         Args:
             num_simulations (int): The number of simulations to run.
             num_steps (int): The number of steps per simulation.
+            stats_path (str): The path to save the statistics.
         """
         if not self.model.simulation.walkers:
             MessageUtils.show_error("Error", "There must be at least one walker!")
             return
-        self.model.run_simulation(num_simulations, num_steps)
-        # Show a message box when the simulation is done
+        self.model.run_simulation(num_simulations, num_steps, stats_path)
+
         MessageUtils.show_message("Simulation", "Simulation completed!")
         # Reset the GUI parameters
+        self.walkers= {}
         self.view.reset_gui()
