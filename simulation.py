@@ -366,7 +366,7 @@ class Simulation:
                 return True
         return False
 
-    def simulate(self, num_steps: int, max_attempts: Optional[int] = 1000) -> None:
+    def simulate(self, num_steps: int, max_attempts: int = 1000) -> None:
         """
         Runs the simulation for a specified number of steps.
 
