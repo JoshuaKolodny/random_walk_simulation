@@ -79,7 +79,7 @@ class Graph:
             if walker_name not in ['barriers', 'portal_gates']:
                 first_simulation_walker_data = walker_data[first_simulation_name]
                 walker_locations = first_simulation_walker_data['locations']
-
+                # Plotting the X and Y coordinates by elements in first column being X and second column Y
                 plt.plot(walker_locations[:, 0], walker_locations[:, 1], label=walker_name)
 
         # Call the plot_barriers function
@@ -92,16 +92,6 @@ class Graph:
         plt.title('Walker Positions (First Simulation)')
         plt.xlabel('X Position')
         plt.ylabel('Y Position')
-        plt.show()
-
-    def plot_average_locations_per_cell(self):
-        """
-        Plot the average locations per cell.
-        """
-        for walker_name, average_locations in self.statistics.calculate_average_locations_per_step().items():
-            sns.lineplot(data=average_locations, label=walker_name)
-        plt.legend()
-        plt.title('Average Locations Per Cell')
         plt.show()
 
     def plot_average_distance_from_origin(self):

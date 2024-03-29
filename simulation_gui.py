@@ -521,7 +521,7 @@ class SimulationGUI:
         tk.Label(self.simulation_frame, text="Path to save Stats: (Optional)").grid(row=3, padx=5, pady=5)
 
         # Create a button that opens the file dialog when clicked
-        self.browse_button = tk.Button(self.simulation_frame, text="Browse", command=self.browse)
+        self.browse_button = GuiHelper.create_styled_button(self.simulation_frame, text="Browse", command=self.browse)
         self.browse_button.grid(row=3, column=1, padx=5, pady=5)
 
         # Create a label to display the selected directory

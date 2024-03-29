@@ -1,9 +1,7 @@
-from portal_gate import *
 from simulation import Simulation
 from my_statistics import Statistics
 from Graph import Graph
 from statistics_exporter import StatisticsExporter
-from utils import MessageUtils
 
 
 class SimulationRunner:
@@ -32,9 +30,10 @@ class SimulationRunner:
         self.simulation = Simulation()  # Initialize a new Simulation object
         self.statistics = Statistics()  # Initialize a new Statistics object
 
-    def run_simulation(self, num_simulations: int, num_steps: int, json_path: str) -> bool:
+    def run_simulation(self, num_simulations: int, num_steps: int, json_path: str):
         """
-        Runs the simulation for a specified number of steps and simulations, calculates statistics, saves the statistics to a JSON file, and plots graphs.
+        Runs the simulation for a specified number of steps and simulations, calculates statistics,
+         saves the statistics to a JSON file, and plots graphs.
 
         Args:
             num_simulations (int): The number of simulations to run.
@@ -82,4 +81,3 @@ class SimulationRunner:
         # Resets simulation runner parameters entirely
         self.simulation = Simulation()
         self.statistics = Statistics()
-        return True

@@ -19,7 +19,7 @@ Step 1:
 	a) Select a walker type you'd like to add from the dropdown list
 	
 	b) If you selected "Biased Walker" you must enter probabilities for each direction,
-	it can be any positive number and the app normalizes it based on all the probabilities you entered:
+	it can be any positive number and the app normalizes it based on all the probabilities you entered to sum 1:
 	
 		1) Up probability- probability for walker to move upwards in each turn
 		2) Down probability- probability for walker to move downwards in each turn
@@ -44,14 +44,14 @@ Step 2:
 	c) Enter a float number for X,Y,Width,Height parameters, the X,Y represent the coordiantes of the bottom left corner of the obstacle
 	d) If "Portal Gate" was selected from the dropdown, enter a float for Dest X, Dest Y which represents the destination
 	you'd like to teleport the walker if it enters the portal gate bounds
-	e) Next click the "Add Obstacle" button and if the paramters are all valid it will add the obstacle to the Obstacles Treeview Table
+	e) Next click the "Add Obstacle" button and if the parameters are all valid it will add the obstacle to the Obstacles Treeview Table
 	f) Similarly to Step 1, you may at any point select an obstacle and remove it clicking the "Remove Obstacle" button
 
 Step 3:
 
 	a) Enter the number of simulations you'd like to run
 	b) Enter the number of steps you'd like per simulation
-	c) Enter path to save stats, it's optional, if left empty it will be saved
+	c) Select the path to save stats, it's optional, if left empty it will be saved
 	to the directory from where you ran the project.
 	d) Click "Run simulation" to run your customized simulation!
 		
