@@ -1,0 +1,26 @@
+LIST OF ADDITIONAL FEATURES INCLUDED IN MY PROJECT:
+
+1. GUI- I built a GUI for customizing the simulation the user wishes to run, to use it, simply run python main.py and you'll have there a "help"
+button explaining all the instructions for how to use it.
+
+2. I added a statistic checking for each walker how many steps per race he "lead the race" on average, meaning how many times per race he was furthest from the origin. I also plotted this in the graphs so it can be visually seen.
+
+3. I added a feature that for each customized simulation you design and run, it will plot the first simulation and show the movement of each walker across the simulation.
+
+4. I added a new type of walker called "NoRepeatWalker" which can move in one of 4 discrete directions one step in each turn, however he can't repeat a movement in the direction he did in his previous move.
+
+5. I added Type Annotations to my project for better readability and maintainability of my code.
+
+6. I added the option of running a simulation not only with different walker types but also include walkers of the same type.
+
+FURTHER EXPLANATION ON INTERESTING FEATURES:
+
+1) GUI:
+		The GUI was the largest additional feature done in the project. I designed it to allow the user to comfortably customize the simulation it would like to run, and get an immediate visual response. The UI is split into three sections, each serving a different purpose. Section 1 includes the addition of Walkers to the simulation, where the user can select the walker types and amounts he'd like to add to the simulation. It adjusts the parameters according to the walker type chosen, for example the biased walker has additional parameters where you select how biased you want it to be. Section 2 includes the addition of barriers and portal gates to the simulation, where you can choose its location, size, and for portal gates its destination target location, it makes sure not to intersect with each other or the origin. Section 3 is where you choose the number of simulations to run, and the number of steps per simulation, and finally selecting a folder (Optional) for where to save the statistics Json file, if no folder is selected it will be saved to the directory where the user ran the project.
+
+2) "Leading the Race" Statistic:
+		Calculates the average number of times each walker led the race in all simulations. Meaning I increment after every step of every simulation the walker that is furthest from the origin. I do that by creating two dictionaries, one has the walker names in the simulation as keys and their total count of leading the race as values. The other dictionary stores the distance of each walker after each step in each simulation, Then iterates over the dictionary and for each step for each simulation increments a count to the furthest from origin walker. It then divides each walker's count by the total amount of steps across all simulations to get the averages. I then plotted it in the graphs that could be saved by the user.
+		
+3) Plotting a simulation:
+		I added a feature that iterates over the statistic object which contains the all the simulation's walker's locations, and selected the first simulation to be graphed. I did so by plotting each X and Y value of the location and giving each walker a unique color. In addition I plotted in the same graph, the barriers as red rectangles filled to cover the bounds which they take over, and the portal gates to be green rectangles, with an arrow pointing to the destination where the portal gate send you.
+
