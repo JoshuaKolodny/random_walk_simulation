@@ -24,3 +24,7 @@ FURTHER EXPLANATION ON INTERESTING FEATURES:
 3) Plotting a simulation:
 		I added a feature that iterates over the statistic object which contains the all the simulation's walker's locations, and selected the first simulation to be graphed. I did so by plotting each X and Y value of the location and giving each walker a unique color. In addition I plotted in the same graph, the barriers as red rectangles filled to cover the bounds which they take over, and the portal gates to be green rectangles, with an arrow pointing to the destination where the portal gate send you.
 
+
+Link to Video:
+https://www.youtube.com/watch?v=zJ_TC6rgla0
+
